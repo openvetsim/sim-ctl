@@ -1,0 +1,67 @@
+#!/bin/sh -e
+### BEGIN INIT INFO
+# Provides:          simctl
+# Required-Start:    $local_fs $all
+# Required-Stop:     $local_fs
+# Default-Start:     5
+# Default-Stop:      0 1 2 3 4 6
+# Short-Description: Start daemon at boot time
+# Description:       Enable service provided by daemon.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+do_status()
+{
+	status_of_proc /usr/local/bin/simController simController
+	status_of_proc /usr/local/bin/pulse pulse
+	status_of_proc /usr/local/bin/rfidScan rfidScan
+	status_of_proc /usr/local/bin/soundSense soundSense
+	status_of_proc /usr/local/bin/breathSense breathSense
+	status_of_proc /usr/local/bin/cprScan cprScan
+}
+
+
+do_start()
+{
+	/usr/local/bin/simController
+	sleep 2
+	/usr/local/bin/pulse
+	/usr/local/bin/rfidScan
+	/usr/local/bin/soundSense ttyO2
+	/usr/local/bin/breathSense
+	/usr/local/bin/cprScan
+	
+}
+do_stop()
+{
+	killall -e -q cprScan
+	killall -e -q soundSense
+	killall -e -q breathSense
+	killall -e -q rfidScan
+	killall -e -q pulse
+	killall -e -q simController
+}
+
+
+case "$1" in
+	start)
+		do_start
+		;;
+	restart)
+		do_stop
+		do_start
+		;;
+	status)
+		do_status
+		;;
+	stop)
+		do_stop
+		;;
+	*)
+		echo "Usage: /etc/init.d/simctl {start|stop|status|restart}"
+		exit 1
+		;;
+esac
+
+exit 0
