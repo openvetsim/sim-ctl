@@ -35,12 +35,12 @@ do_start()
 }
 do_stop()
 {
-	killall -e -q cprScan
-	killall -e -q soundSense
-	killall -e -q breathSense
-	killall -e -q rfidScan
-	killall -e -q pulse
-	killall -e -q simController
+	killall cprScan
+	killall soundSense
+	killall breathSense
+	killall rfidScan
+	killall pulse
+	killall simController
 }
 
 

@@ -639,3 +639,40 @@ gpioPinGet(FILE *ioval, int *value)
 	}
 	return ( -1 );
 }
+
+// Implementation of itoa() 
+// Base 10 only, so a little more efficient
+char itoaNumbers[12] = "0123456789";
+char itoaString[34] = { 0, };
+
+char* itoa(int num ) 
+{
+	char *t = &itoaString[34];
+	int isNeg;
+	int digit;
+	
+	if ( num >= 0 )
+	{
+		isNeg = false;
+	}
+	else
+	{
+		isNeg = true;
+		num = -num;
+	}
+	do 
+	{
+		digit = num % 10;
+		*t-- = itoaNumbers[digit];
+	} while ( num /= 10, num > 0 );
+	
+	if ( isNeg )
+	{
+		*t='-';
+	}
+	else
+	{
+		++t;
+	}
+	return t;
+}

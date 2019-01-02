@@ -21,6 +21,7 @@ int read_ain(int chan );		// Read Analog Input Channel
 int getI2CLock(void );
 void releaseI2CLock(void );
 void cleanString(char *strIn );
+char* itoa(int num );
 
 // GPIO Access
 #define GPIO_TURN_ON	1

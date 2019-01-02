@@ -24,9 +24,9 @@ struct cardiac
 {
 	char rhythm[STR_SIZE];
 	char vpc[STR_SIZE];
-	int vpc_freq;		// 0-100% - Frequencey of VPC insertions (when vpc is not set to "none")
+	int vpc_freq;		// 0-100% - Frequency of VPC insertions (when vpc is not set to "none")
 	char vfib_amplitude[STR_SIZE];	// low, med, high
-	int pea;			// Pulseless Electrical Activity
+	int pea;			// Pulse-less Electrical Activity
 	int rate;			// Heart Rate in Beats per Minute
 	char pwave[STR_SIZE];
 	int pr_interval;	// PR interval in msec
@@ -65,7 +65,7 @@ struct respiration
 	int inhalation_duration;	// in msec
 	int exhalation_duration;	// in msec
 
-	// Current respiration rate
+// Current respiration rate
 	int awRR;	// Computed rate
 	int rate;	// defined rate
 	
@@ -115,6 +115,9 @@ struct cpr
 	int	compression;	// 0 to 100%
 	int release;		// 0 to 100%
 	int duration;
+	int x;
+	int y;
+	int z;
 };
 
 struct defibrillation

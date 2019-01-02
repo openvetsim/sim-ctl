@@ -1,0 +1,261 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SIMCTL Status</title>
+    <link href="css/jquerysctipttop.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="css/bootstrap.min.css" >
+    <link rel="stylesheet" href="css/cmGauge.css">
+    <style>
+    body { background-color:#333; color:white;}
+    .container 
+	{
+		margin:10px auto;
+	}
+    h1, h2, h3, h4, p
+	{
+		margin-bottom:10px;
+	}
+	.pulseGauge
+	{
+		float: left;
+		width: 75px;
+	}
+	.tag
+	{
+		float: left;
+		border: solid #555555;
+	}
+	.clear
+	{
+		clear: both;
+	}
+	.vs-trace {
+		cursor: pointer;
+		border: solid #555555;
+	}
+	.val {
+		display: inline-block;
+		min-width: 80px;
+	}
+    </style>
+</head>
+<body>
+<div id="jquery-script-menu">
+<div class="jquery-script-center">
+
+
+<div class="jquery-script-clear"></div>
+</div>
+</div>
+<div class="container">
+	
+	<div class="pulseGauge">
+		<p>Left Femoral</p>
+		<div id="gaugeLF" class="gauge gauge-green">
+			<div class="gauge-arrow" data-percentage="40"
+				 style="transform: rotate(0deg);"></div>
+		</div>
+	</div>
+
+	<div class="pulseGauge">
+		<p>Right Femoral</p>
+		<div id="gaugeRF" class="gauge gauge-green">
+			<div class="gauge-arrow" data-percentage="90"
+				 style="transform: rotate(0deg);">
+			</div>
+		</div>
+	</div>
+	
+	<div class="pulseGauge clear">
+		<p>Left Dorsal</p>
+		<div id="gaugeLD" class="gauge gauge-green">
+			<div class="gauge-arrow" data-percentage="40"
+				 style="transform: rotate(0deg);"></div>
+		</div>
+	</div>
+
+	<div class="pulseGauge">
+		<p>Right Dorsal</p>
+		<div id="gaugeRD" class="gauge gauge-green">
+			<div class="gauge-arrow" data-percentage="90"
+				 style="transform: rotate(0deg);">
+			</div>
+		</div>
+	</div>
+	
+	<div class="pulseGauge clear">
+		<p>Manual Breath</p>
+		<div id="gaugeBreath" class="gauge gauge-green">
+			<div class="gauge-arrow" data-percentage="40"
+				 style="transform: rotate(0deg);"></div>
+		</div>
+	</div>
+	
+	<div class="tag clear">
+		<h4>Last Tag</h4>
+		<p id="tag" ></p>
+	</div>
+	<div class="traceBox">
+		<h4>CPR Trace</h4>
+		<canvas id="cprTrace" class="vs-trace" width="500" height="200"></canvas>
+		<br>
+		Last <h4 class='val' id='last'>0</h4>
+		X <h4 class='val' id='xval'>67</h4>
+		Y <h4 class='val' id='yval'>345</h4>
+		Z <h4 class='val' id='zval'>564345</h4>
+	</div>
+</div>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="js/cmGauge.js"></script>
+<script type="text/javascript">
+	CanvasRenderingContext2D.prototype.clear = 
+	CanvasRenderingContext2D.prototype.clear || function (preserveTransform) {
+		if (preserveTransform) {
+		  this.save();
+		  this.setTransform(1, 0, 0, 1, 0, 0);
+		}
+
+		this.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+		if (preserveTransform) {
+			this.restore();
+		}           
+	};
+
+	$(function () {
+		$('.gauge-arrow').cmGauge();
+		getSample();
+		var canvas = document.getElementById('cprTrace');
+		const context = canvas.getContext('2d');
+		ctx.fillRect(0, 0, 499, 299 );
+	});
+	var thisServer = window.location.origin;
+	var lastTag;
+	function getSample() {
+		$.ajax({
+			url: thisServer + '/cgi-bin/ctlstatus.cgi',
+			type: 'get',
+			dataType: 'json',
+			success: function(response,  textStatus, jqXHR ) {
+				$('#gaugeLF .gauge-arrow').trigger('updateGauge', (response.pulse.LF_AIN / 4096 ) * 100);
+				$('#gaugeRF .gauge-arrow').trigger('updateGauge', (response.pulse.RF_AIN / 4096 ) * 100);
+				$('#gaugeLD .gauge-arrow').trigger('updateGauge', (response.pulse.LD_AIN / 4096 ) * 100);
+				$('#gaugeRD .gauge-arrow').trigger('updateGauge', (response.pulse.RD_AIN / 4096 ) * 100);
+				$('#gaugeBreath .gauge-arrow').trigger('updateGauge', (response.respiration.ain / 4096 ) * 100);
+				if ( lastTag !== response.auscultation.tag )
+				{
+					lastTag = response.auscultation.tag;
+					$('#tag').text(lastTag );
+				}
+				$('#last').text(response.cpr.last );
+				$('#xval').text(response.cpr.x );
+				$('#yval').text(response.cpr.y );
+				$('#zval').text(response.cpr.z );
+				updateChart(response.cpr );
+			},
+			error: function( jqXHR,  textStatus,  errorThrown){
+				console.log("error: "+textStatus+" : "+errorThrown );
+			},
+			complete: function(jqXHR,  textStatus ){
+				setTimeout(function() {getSample(); }, 20 );
+			}
+		});			
+	}
+	var nextX = 0;
+	var lastXbit = 0;
+	var lastYbit = 0;
+	var lastZbit = 0;
+	var zOffset = 16000
+	var canvas = document.getElementById('cprTrace');
+	const ctx = canvas.getContext('2d');
+	function updateChart(cpr )
+	{
+		
+		ctx.beginPath();
+		ctx.fillRect(nextX, 0, 10, 199 );
+		ctx.strokeStyle = "#000000";
+		ctx.stroke();
+		
+		var xbit = xy_scale(cpr.x );
+		var ybit = xy_scale(cpr.y );
+		var zbit = z_scale(cpr.z );
+		
+		//console.log(cpr.x, cpr.y, cpr.z, xbit, ybit, zbit );
+		ctx.beginPath();
+		ctx.strokeStyle = "#FF0000";
+		if ( nextX == 0 )
+		{
+			ctx.fillRect(nextX, xbit, 1, 1 );
+		}
+		else
+		{
+			ctx.moveTo(nextX - 1, lastXbit );
+			ctx.lineTo(nextX,  xbit );
+		}
+		lastXbit = xbit;
+		ctx.stroke();
+		
+		
+		ctx.beginPath();
+		ctx.strokeStyle = "#00FF00";
+		if ( nextX == 0 )
+		{
+			ctx.fillRect(nextX, ybit, 1, 1 );
+		}
+		else
+		{
+			ctx.moveTo(nextX - 1, lastYbit );
+			ctx.lineTo(nextX,  ybit );
+		}
+		lastYbit = ybit;
+		ctx.stroke();
+		
+		
+		ctx.beginPath();
+		ctx.strokeStyle = "#0000FF";
+		if ( nextX == 0 )
+		{
+			ctx.fillRect(nextX, zbit, 1, 1 );
+		}
+		else
+		{
+			ctx.moveTo(nextX - 1, lastZbit );
+			ctx.lineTo(nextX,  zbit );
+		}
+		lastZbit = zbit;
+		ctx.stroke();
+		
+		nextX = (nextX + 1) % 500;
+		
+	}
+	var xy_max = 16000;
+	var z_max = 0;
+	var xy_min = -16000;
+	var z_min = -32000;
+	
+	function xy_scale(val )
+	{
+		// Scale from range to bit, 0 to 200
+		val = parseInt(val );
+		val2 = ( val + 16000 ); // Make positive, range of 0 to 32000
+		val3 = ( val2 / 32000 ) * 200;
+		val4 = Math.round( val3 );
+		return (  val4 );
+	}
+	function z_scale(val )
+	{
+		// Scale from range to bit, 0 to 200
+		val = parseInt(val );
+		val2 = ( val + 32000 ); // Make positive, range of 0 to 32000
+		val3 = ( val2 / 32000 ) * 200;
+		val4 = Math.round( val3 );
+		return (  val4 );
+	}
+</script>
+
+
+</body>
+</html>

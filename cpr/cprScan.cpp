@@ -56,11 +56,11 @@ struct shmData *shmData;
 char msgbuf[2048];
 
 int debug = 0;
-#define Z_IDLE		15500
-#define Z_COMPRESS	22000
-#define Z_RELEASE	11000
-#define X_Y_LIMIT	50000
-#define CPR_HOLD	60
+#define Z_IDLE		16000
+#define Z_COMPRESS	30000
+#define Z_RELEASE	5000
+#define X_Y_LIMIT	12000
+#define CPR_HOLD	10
 
 int main(int argc, char *argv[])
 {
@@ -127,6 +127,7 @@ int main(int argc, char *argv[])
 			lastX = cprSense.readingX;
 			lastY = cprSense.readingY;
 			cummZ += diffZ;
+#if 0
 			if ( compressed )
 			{
 				count++;
@@ -146,12 +147,13 @@ int main(int argc, char *argv[])
 				} */
 			}
 			else
+#endif
 			{
 				if ( ( abs(lastX ) > X_Y_LIMIT ) || ( abs(lastY ) > X_Y_LIMIT ) )
 				{
 					// Large X or Y displacement indication moving the mannequin rather than possible compression
 				}
-				else if ( lastZ > Z_COMPRESS  )
+				else if ( abs(lastZ) > Z_COMPRESS  )
 				{
 					compressed = 1;
 					shmData->cpr.compression = 1;
@@ -175,6 +177,9 @@ int main(int argc, char *argv[])
 				//printf("%3d:\t%05d:\t%05d\t%05d\t: %05d  %d\n", count, loop, lastZ, diffZ, cummZ, compressed );
 				printf("%05d\t%05d\t%05d\t%05d  %d\n", loop, lastX, lastY, lastZ, compressed );
 			}
+			shmData->cpr.x = lastX;
+			shmData->cpr.y = lastY;
+			shmData->cpr.z = lastZ;
 		}
 		usleep(20000);
 	}
