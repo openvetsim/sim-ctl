@@ -57,10 +57,10 @@ char msgbuf[2048];
 
 int debug = 0;
 #define Z_IDLE		16000
-#define Z_COMPRESS	30000
+#define Z_COMPRESS	19000
 #define Z_RELEASE	5000
-#define X_Y_LIMIT	12000
-#define CPR_HOLD	10
+#define X_Y_LIMIT	7000
+#define CPR_HOLD	20
 
 int main(int argc, char *argv[])
 {
@@ -149,11 +149,14 @@ int main(int argc, char *argv[])
 			else
 #endif
 			{
+				/*
 				if ( ( abs(lastX ) > X_Y_LIMIT ) || ( abs(lastY ) > X_Y_LIMIT ) )
 				{
 					// Large X or Y displacement indication moving the mannequin rather than possible compression
 				}
 				else if ( abs(lastZ) > Z_COMPRESS  )
+					*/
+				if ( ( abs(lastX ) > X_Y_LIMIT ) || ( abs(lastY ) > X_Y_LIMIT ) ||  abs(lastZ) > Z_COMPRESS )
 				{
 					compressed = 1;
 					shmData->cpr.compression = 1;
