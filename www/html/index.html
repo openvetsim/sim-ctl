@@ -39,6 +39,7 @@
 	.val {
 		display: inline-block;
 		min-width: 80px;
+		color: red;
 	}
     </style>
 </head>
@@ -100,12 +101,12 @@
 	</div>
 	<div class="traceBox">
 		<h4>CPR Trace</h4>
-		<canvas id="cprTrace" class="vs-trace" width="500" height="200"></canvas>
+		<canvas id="cprTrace" class="vs-trace" width="500" height="300"></canvas>
 		<br>
 		Last <h4 class='val' id='last'>0</h4>
-		X <h4 class='val' id='xval'>67</h4>
-		Y <h4 class='val' id='yval'>345</h4>
-		Z <h4 class='val' id='zval'>564345</h4>
+		X <h4 class='val' id='xval'></h4>
+		Y <h4 class='val' id='yval'></h4>
+		Z <h4 class='val' id='zval'></h4>
 	</div>
 </div>
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
@@ -179,9 +180,9 @@
 		ctx.strokeStyle = "#000000";
 		ctx.stroke();
 		
-		var xbit = xy_scale(cpr.x );
-		var ybit = xy_scale(cpr.y );
-		var zbit = z_scale(cpr.z );
+		var xbit = xyz_scale(cpr.x );
+		var ybit = xyz_scale(cpr.y );
+		var zbit = xyz_scale(cpr.z );
 		
 		//console.log(cpr.x, cpr.y, cpr.z, xbit, ybit, zbit );
 		ctx.beginPath();
@@ -231,29 +232,17 @@
 		nextX = (nextX + 1) % 500;
 		
 	}
-	var xy_max = 16000;
-	var z_max = 0;
-	var xy_min = -16000;
-	var z_min = -32000;
 	
-	function xy_scale(val )
+	function xyz_scale(val )
 	{
 		// Scale from range to bit, 0 to 200
 		val = parseInt(val );
-		val2 = ( val + 16000 ); // Make positive, range of 0 to 32000
-		val3 = ( val2 / 32000 ) * 200;
+		val2 = ( val + 32000 ); // Make positive, range of 0 to 64000
+		val3 = ( val2 / 64000 ) * 200;
 		val4 = Math.round( val3 );
 		return (  val4 );
 	}
-	function z_scale(val )
-	{
-		// Scale from range to bit, 0 to 200
-		val = parseInt(val );
-		val2 = ( val + 32000 ); // Make positive, range of 0 to 32000
-		val3 = ( val2 / 32000 ) * 200;
-		val4 = Math.round( val3 );
-		return (  val4 );
-	}
+
 </script>
 
 

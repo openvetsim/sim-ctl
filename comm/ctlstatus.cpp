@@ -81,15 +81,15 @@ sendStatus(void )
 	cout << " \"pulse\" : {\n";
 	makejson(cout, "right_dorsal", itoa(shmData->pulse.right_dorsal ) );
 	cout << ",\n";
-	makejson(cout, "RD_AIN", itoa(shmData->pulse.ain[3] ) );
+	makejson(cout, "RD_AIN", itoa(shmData->pulse.ain[1] ) );
 	cout << ",\n";
 	makejson(cout, "left_dorsal", itoa(shmData->pulse.left_dorsal ) );
 	cout << ",\n";
-	makejson(cout, "LD_AIN", itoa(shmData->pulse.ain[2] ) );
+	makejson(cout, "LD_AIN", itoa(shmData->pulse.ain[3] ) );
 	cout << ",\n";
 	makejson(cout, "right_femoral", itoa(shmData->pulse.right_femoral ) );
 	cout << ",\n";
-	makejson(cout, "RF_AIN", itoa(shmData->pulse.ain[1] ) );
+	makejson(cout, "RF_AIN", itoa(shmData->pulse.ain[2] ) );
 	cout << ",\n";
 	makejson(cout, "left_femoral", itoa(shmData->pulse.left_femoral ) );
 	cout << ",\n";
