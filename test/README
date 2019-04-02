@@ -1,0 +1,32 @@
+test
+
+These files provide test functions for checking out the SimController Hardware.
+
+ain_mon.c:	Test AIN Controls
+	Runs a 1 sec. loop that displays the readings of the AIN channels
+	The test also provides the readings of all AIN signals in this order:
+		AIN0, AIN1, AIN2, AIN3, AIN4, AIN5
+		Breath Sense, Touch Sense 1, Pressure Sense (unused), Touch Sense 2, Touch Sense 3, Touch Sense 4
+
+ain_air_test.c:		Test AIN and Lung Control
+	Runs a 250 ms. loop that cycles the Lung Pump, Rise and Fall controls in sequence.
+	(Note that while a Tank control exists, it is not used in the system).
+	Output order same as ain_mon
+
+tsunami_test.cpp:
+	At start, displays the startup data from the tsunami. Then accepts commands to
+	play sound file number 001 on the Tsunami to a specified channel.
+	
+	Start with su and indicate the tty port (tty2 is usually the correct one).
+	
+	Example: su tsinami_test ttyO2
+	
+	Enter a number followed by ENTER key to play each channel:
+	1	Left Dorsal	(This one plays on the headset due to a bug in the code right now, but fixed on next update)
+	2	Right Dorsal
+	3	Left Femoral
+	4	Right Femoral
+	5	Speaker 1
+	6	Speaker 2
+	7	Headset
+	q	Exit program

@@ -1,8 +1,3 @@
 
-
 rfidScan is the support for the RFID sense system. 
-
-simController is the manager of the shared memory system and provides comminication with the sim-mgr.
-It will periodically send the sensor states to the sim-mgr and will read back parameters to control
-simulation outputs.
 

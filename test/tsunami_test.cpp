@@ -1,8 +1,22 @@
 /*
  * Wave Trigger Test
  *
- * Copyright (C) 2015 Terence Kelleher. All Rights Reserved.
- */
+ * This file is part of the sim-ctl distribution (https://github.com/OpenVetSimDevelopers/sim-ctl).
+ * 
+ * Copyright (c) 2019 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
  
 #include <string.h>
 #include <errno.h>
@@ -134,7 +148,7 @@ main(int argc, char *argv[] )
 	usleep(500000);
 	printf("Started\n" );
 	val = wav.getVersion(buffer, MAX_BUF );
-	printf("WAV Trigger Version: Len %d String %.*s\n", val, 20, &buffer[1] );
+	printf("WAV Trigger Version: Len %d String %s\n", val, &buffer[1] );
 
 	val = wav.getSysInfo(buffer, MAX_BUF );
 	printf("Sys Info: Len %d Voices %d Tracks %d\n", val, buffer[1], buffer[2] );
@@ -158,10 +172,10 @@ main(int argc, char *argv[] )
 		{
 			case '1':
 				printf("Left Dorsal\n" );
-				wav.trackPlaySolo(HEADSET_CHAN, 1);
+				wav.trackPlaySolo(LEFT_DORSAL_CHAN, 1);
 				break;
 			case '2':
-				printf("Rigth Dorsal\n" );
+				printf("Right Dorsal\n" );
 				wav.trackPlaySolo(RIGHT_DORSAL_CHAN, 1);
 				break;
 			case '3':

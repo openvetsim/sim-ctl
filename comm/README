@@ -1,3 +1,8 @@
 Common files for sim controller programs
 
-simUtil.c
+simUtil.c			Provides common functions
+simController.cpp	Provides overall control
+simCtrlComm.cpp		Provides communications with the Sim Manager
+curl.cpp			Used to access web functions on the Sim Manager
+simParse.cpp		Parse of simstatus data
+ctlstatus.cpp		CGI used for web based diagnostics

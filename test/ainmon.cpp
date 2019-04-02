@@ -1,3 +1,23 @@
+/*
+ * ainmon.cpp
+ *
+ * This file is part of the sim-ctl distribution (https://github.com/OpenVetSimDevelopers/sim-ctl).
+ * 
+ * Copyright (c) 2019 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -97,6 +117,7 @@ main(int argc, char *argv[] )
 	int ain2;
 	int ain3;
 	int ain4;
+	int ain5;
 	while ( 1 )
 	{
 		ain0 = read_ain(0 );
@@ -104,7 +125,8 @@ main(int argc, char *argv[] )
 		ain2 = read_ain(2 );
 		ain3 = read_ain(3 );
 		ain4 = read_ain(4 );
-		printf("%5d, %5d, %5d, %5d, %5d\n", ain0, ain1, ain2, ain3, ain4 );
+		ain4 = read_ain(5 );
+		printf("%5d, %5d, %5d, %5d, %5d\n", ain0, ain1, ain2, ain3, ain4, ain5 );
 		
 		usleep(1000000 );
 	}

@@ -1,11 +1,9 @@
 pulse:
-	System for pulse tuoch sense
-	
+	System for pulse touch sense
 	
 Files:
 	pulse.c: Pulse support
 		Runs as daemon process (-d is specified)
 		Opens Pulse Sync Listener and waits for Sync, then initiates pulse
 		    based on the sense status.
-	pulseI2C.cpp: C++ Class for support in communicating with the Haptic controller.
-	pulseI2C.h: Header file for Haptic Controller Class
+
