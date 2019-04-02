@@ -1,0 +1,2 @@
+This directory in the /var/www tree should contain the executable ctlstatus.cgi after the SimCtrl software
+has been built and installed.
