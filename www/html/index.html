@@ -101,6 +101,7 @@
 	<div class="tag clear">
 		<h4>Last Tag</h4>
 		<p id="tag" ></p>
+		<p id="pos" ></p>
 	</div>
 	<div class="traceBox">
 		<h4>CPR Trace</h4>
@@ -153,6 +154,7 @@
 				{
 					lastTag = response.auscultation.tag;
 					$('#tag').text(lastTag );
+					$('#pos').text(response.auscultation.side+" "+response.auscultation.row+" "+response.auscultation.col );
 				}
 				$('#last').text(response.cpr.last );
 				$('#xval').text(response.cpr.x );
@@ -172,7 +174,7 @@
 	var lastXbit = 0;
 	var lastYbit = 0;
 	var lastZbit = 0;
-	var zOffset = 16000
+	var zOffset = 16000;
 	var canvas = document.getElementById('cprTrace');
 	const ctx = canvas.getContext('2d');
 	function updateChart(cpr )
