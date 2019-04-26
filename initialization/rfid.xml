@@ -1,183 +1,525 @@
+<?xml version='1.0' encoding='UTF-8'?>
 <rfidTags>
 	  <tag>
-		<description>Left Side, Top Row, Head</description>
+		<description>TestTag1</description>
 		<tagId>4384763</tagId>
 		<side>1</side>
 		<heartStrength>10</heartStrength>
-		<leftLungStrength>10</leftLungStrength>
+		<leftLungStrength>2</leftLungStrength>
 		<rightLungStrength>0</rightLungStrength>
 		<xPosition>1</xPosition>
 		<yPosition>1</yPosition>
 	  </tag>
 	  <tag>
-		<description>Left Side, Top Row, Center</description>
-		<tagId></tagId>
-		<side>1</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
+		<description>TestTag2</description>
+		<tagId>9610805</tagId>
+		<side>2</side>
+		<heartStrength>2</heartStrength>
+		<leftLungStrength>10</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
 		<xPosition>2</xPosition>
-		<yPosition>1</yPosition>
-		</tag>
-	  <tag>
-		<description>Left Side, Top Row, Tail</description>
-		<tagId></tagId>
-		<side>1</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
-		<xPosition>3</xPosition>
-		<yPosition>1</yPosition>
-	  </tag>
-	  <tag>
-		<description>Left Side, Middle Row, Head</description>
-		<tagId></tagId>
-		<side>1</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
-		<xPosition>1</xPosition>
-		<yPosition>2</yPosition>
-	  </tag>
-	  <tag>
-		<description>Left Side, Middle Row, Center</description>
-		<tagId></tagId>
-		<side>1</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
-		<xPosition>2</xPosition>
-		<yPosition>2</yPosition>
-	  </tag>
-	  <tag>
-		<description>Left Side, Middle Row, Tail</description>
-		<tagId></tagId>
-		<side>1</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
-		<xPosition>3</xPosition>
 		<yPosition>2</yPosition>
 	  </tag>
 	  <tag>
 		<description>Left Side, Bottom Row, Head</description>
-		<tagId></tagId>
+		<tagId>2591659</tagId>
 		<side>1</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
+		<heartStrength>9</heartStrength>
+		<leftLungStrength>4</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
 		<xPosition>1</xPosition>
-		<yPosition>3</yPosition>
-	  </tag>
+		<yPosition>1</yPosition>
+	  </tag>
+	  <tag>
+		<description>Left Side, Bottom Row, Center Left</description>
+		<tagId>2582772</tagId>
+		<side>1</side>
+		<heartStrength>7</heartStrength>
+		<leftLungStrength>5</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>2</xPosition>
+		<yPosition>1</yPosition>
+	  </tag>
 	  <tag>
 		<description>Left Side, Bottom Row, Center</description>
-		<tagId></tagId>
+		<tagId>2590586</tagId>
 		<side>1</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
-		<xPosition>2</xPosition>
-		<yPosition>3</yPosition>
-	  </tag>
-	  <tag>
+		<heartStrength>5</heartStrength>
+		<leftLungStrength>6</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>3</xPosition>
+		<yPosition>1</yPosition>
+	  </tag>
+		  <tag>
+		<description>Left Side, Bottom Row, Center Right</description>
+		<tagId>2602478</tagId>
+		<side>1</side>
+		<heartStrength>3</heartStrength>
+		<leftLungStrength>6</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>4</xPosition>
+		<yPosition>1</yPosition>
+	  </tag>
+		  <tag>
 		<description>Left Side, Bottom Row, Tail</description>
-		<tagId></tagId>
+		<tagId>2595896</tagId>
 		<side>1</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
+		<heartStrength>2</heartStrength>
+		<leftLungStrength>6</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>5</xPosition>
+		<yPosition>1</yPosition>
+	  </tag>
+	  <tag>
+		<description>Left Side, Bottom Row + 1, Head</description>
+		<tagId>2650950</tagId>
+		<side>1</side>
+		<heartStrength>7</heartStrength>
+		<leftLungStrength>5</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>1</xPosition>
+		<yPosition>2</yPosition>
+	  </tag>
+	  <tag>
+		<description>Left Side, Bottom Row + 1, Center Left</description>
+		<tagId>2582721</tagId>
+		<side>1</side>
+		<heartStrength>7</heartStrength>
+		<leftLungStrength>5</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>2</xPosition>
+		<yPosition>2</yPosition>
+	  </tag>
+	  <tag>
+		<description>Left Side, Bottom Row + 1, Center</description>
+		<tagId>2602112</tagId>
+		<side>1</side>
+		<heartStrength>5</heartStrength>
+		<leftLungStrength>6</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>3</xPosition>
+		<yPosition>2</yPosition>
+	  </tag>
+		  <tag>
+		<description>Left Side, Bottom Row + 1, Center Right</description>
+		<tagId>2651961</tagId>
+		<side>1</side>
+		<heartStrength>3</heartStrength>
+		<leftLungStrength>6</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>4</xPosition>
+		<yPosition>2</yPosition>
+	  </tag>
+		  <tag>
+		<description>Left Side, Bottom Row + 1, Tail</description>
+		<tagId>2594609</tagId>
+		<side>1</side>
+		<heartStrength>2</heartStrength>
+		<leftLungStrength>6</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>5</xPosition>
+		<yPosition>2</yPosition>
+	  </tag>
+	  <tag>
+		<description>Left Side, Center Row, Head</description>
+		<tagId>2619162</tagId>
+		<side>1</side>
+		<heartStrength>5</heartStrength>
+		<leftLungStrength>6</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>1</xPosition>
+		<yPosition>3</yPosition>
+	  </tag>
+	  <tag>
+		<description>Left Side, Center Row, Center Left</description>
+		<tagId>2587806</tagId>
+		<side>1</side>
+		<heartStrength>5</heartStrength>
+		<leftLungStrength>6</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>2</xPosition>
+		<yPosition>3</yPosition>
+	  </tag>
+	  <tag>
+		<description>Left Side, Center Row, Center</description>
+		<tagId>2602664</tagId>
+		<side>1</side>
+		<heartStrength>5</heartStrength>
+		<leftLungStrength>7</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
 		<xPosition>3</xPosition>
 		<yPosition>3</yPosition>
-	  </tag>
-	  
-	  <tag>
-		<description>Right Side, Top Row, Head</description>
-		<tagId></tagId>
-		<side>2</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
+	  </tag>
+		  <tag>
+		<description>Left Side, Center Row, Center Right</description>
+		<tagId>2582906</tagId>
+		<side>1</side>
+		<heartStrength>3</heartStrength>
+		<leftLungStrength>7</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>4</xPosition>
+		<yPosition>3</yPosition>
+	  </tag>
+		  <tag>
+		<description>Left Side, Center Row, Tail</description>
+		<tagId>2590617</tagId>
+		<side>1</side>
+		<heartStrength>1</heartStrength>
+		<leftLungStrength>7</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>5</xPosition>
+		<yPosition>3</yPosition>
+	  </tag>
+	  <tag>
+		<description>Left Side, Center Row + 1, Head</description>
+		<tagId>2638771</tagId>
+		<side>1</side>
+		<heartStrength>3</heartStrength>
+		<leftLungStrength>7</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
 		<xPosition>1</xPosition>
-		<yPosition>1</yPosition>
-	  </tag>
+		<yPosition>4</yPosition>
+	  </tag>
 	  <tag>
-		<description>Right Side, Top Row, Center</description>
-		<tagId></tagId>
-		<side>2</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
+		<description>Left Side, Center Row + 1, Center Left</description>
+		<tagId>2598768</tagId>
+		<side>1</side>
+		<heartStrength>3</heartStrength>
+		<leftLungStrength>7</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
 		<xPosition>2</xPosition>
-		<yPosition>1</yPosition>
-	  </tag>
+		<yPosition>4</yPosition>
+	  </tag>
 	  <tag>
-		<description>Right Side, Top Row, Tail</description>
-		<tagId></tagId>
-		<side>2</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
+		<description>Left Side, Center Row + 1, Center</description>
+		<tagId>2585857</tagId>
+		<side>1</side>
+		<heartStrength>3</heartStrength>
+		<leftLungStrength>7</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
 		<xPosition>3</xPosition>
-		<yPosition>1</yPosition>
-	  </tag>
-	  <tag>
-		<description>Right Side, Middle Row, Head</description>
-		<tagId></tagId>
-		<side>2</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
+		<yPosition>4</yPosition>
+	  </tag>
+		  <tag>
+		<description>Left Side, Center Row + 1, Center Right</description>
+		<tagId>2651923</tagId>
+		<side>1</side>
+		<heartStrength>3</heartStrength>
+		<leftLungStrength>8</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>4</xPosition>
+		<yPosition>4</yPosition>
+	  </tag>
+		  <tag>
+		<description>Left Side, Center Row + 1, Tail</description>
+		<tagId>2599034</tagId>
+		<side>1</side>
+		<heartStrength>1</heartStrength>
+		<leftLungStrength>8</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>5</xPosition>
+		<yPosition>4</yPosition>
+	  </tag>
+	  <tag>
+		<description>Left Side, Top Row, Head</description>
+		<tagId>2602465</tagId>
+		<side>1</side>
+		<heartStrength>1</heartStrength>
+		<leftLungStrength>8</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
 		<xPosition>1</xPosition>
-		<yPosition>2</yPosition>
-	  </tag>
+		<yPosition>5</yPosition>
+	  </tag>
 	  <tag>
-		<description>Right Side, Middle Row, Center</description>
-		<tagId></tagId>
-		<side>2</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
+		<description>Left Side, Top Row, Center Left</description>
+		<tagId>2595698</tagId>
+		<side>1</side>
+		<heartStrength>1</heartStrength>
+		<leftLungStrength>8</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
 		<xPosition>2</xPosition>
-		<yPosition>2</yPosition>
-	  </tag>
+		<yPosition>5</yPosition>
+	  </tag>
 	  <tag>
-		<description>Right Side, Middle Row, Tail</description>
-		<tagId></tagId>
-		<side>2</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
+		<description>Left Side, Top Row, Center</description>
+		<tagId>2589161</tagId>
+		<side>1</side>
+		<heartStrength>1</heartStrength>
+		<leftLungStrength>8</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
 		<xPosition>3</xPosition>
-		<yPosition>2</yPosition>
-	  </tag>
+		<yPosition>5</yPosition>
+	  </tag>
+		  <tag>
+		<description>Left Side, Top Row, Center Right</description>
+		<tagId>2651862</tagId>
+		<side>1</side>
+		<heartStrength>1</heartStrength>
+		<leftLungStrength>8</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>4</xPosition>
+		<yPosition>5</yPosition>
+	  </tag>
+		  <tag>
+		<description>Left Side, Top Row, Tail</description>
+		<tagId>2589157</tagId>
+		<side>1</side>
+		<heartStrength>1</heartStrength>
+		<leftLungStrength>9</leftLungStrength>
+		<rightLungStrength>0</rightLungStrength>
+		<xPosition>5</xPosition>
+		<yPosition>5</yPosition>
+	  </tag>	  
+	
+	
 	  <tag>
 		<description>Right Side, Bottom Row, Head</description>
-		<tagId></tagId>
+		<tagId>2604366</tagId>
 		<side>2</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
+		<heartStrength>9</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>4</rightLungStrength>
 		<xPosition>1</xPosition>
-		<yPosition>3</yPosition>
-	  </tag>
+		<yPosition>1</yPosition>
+	  </tag>
+	  <tag>
+		<description>Right Side, Bottom Row, Center Right</description>
+		<tagId>2612270</tagId>
+		<side>2</side>
+		<heartStrength>7</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>5</rightLungStrength>
+		<xPosition>2</xPosition>
+		<yPosition>1</yPosition>
+	  </tag>
 	  <tag>
 		<description>Right Side, Bottom Row, Center</description>
-		<tagId></tagId>
+		<tagId>2601284</tagId>
 		<side>2</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
+		<heartStrength>5</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>6</rightLungStrength>
+		<xPosition>3</xPosition>
+		<yPosition>1</yPosition>
+	  </tag>
+		  <tag>
+		<description>Right Side, Bottom Row, Center Left</description>
+		<tagId>2603413</tagId>
+		<side>2</side>
+		<heartStrength>3</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>6</rightLungStrength>
+		<xPosition>4</xPosition>
+		<yPosition>1</yPosition>
+	  </tag>
+		  <tag>
+		<description>Right Side, Bottom Row, Tail</description>
+		<tagId>2588098</tagId>
+		<side>2</side>
+		<heartStrength>2</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>6</rightLungStrength>
+		<xPosition>5</xPosition>
+		<yPosition>1</yPosition>
+	  </tag>
+	  <tag>
+		<description>Right Side, Bottom Row + 1, Head</description>
+		<tagId>2591009</tagId>
+		<side>2</side>
+		<heartStrength>7</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>5</rightLungStrength>
+		<xPosition>1</xPosition>
+		<yPosition>2</yPosition>
+	  </tag>
+	  <tag>
+		<description>Right Side, Bottom Row + 1, Center Right</description>
+		<tagId>2595777</tagId>
+		<side>2</side>
+		<heartStrength>7</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>5</rightLungStrength>
+		<xPosition>2</xPosition>
+		<yPosition>2</yPosition>
+	  </tag>
+	  <tag>
+		<description>Right Side, Bottom Row + 1, Center</description>
+		<tagId>2619277</tagId>
+		<side>2</side>
+		<heartStrength>5</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>6</rightLungStrength>
+		<xPosition>3</xPosition>
+		<yPosition>2</yPosition>
+	  </tag>
+		  <tag>
+		<description>Right Side, Bottom Row + 1, Center Left</description>
+		<tagId>2602090</tagId>
+		<side>2</side>
+		<heartStrength>3</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>6</rightLungStrength>
+		<xPosition>4</xPosition>
+		<yPosition>2</yPosition>
+	  </tag>
+		  <tag>
+		<description>Right Side, Bottom Row + 1, Tail</description>
+		<tagId>2605344</tagId>
+		<side>2</side>
+		<heartStrength>2</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>6</rightLungStrength>
+		<xPosition>5</xPosition>
+		<yPosition>2</yPosition>
+	  </tag>
+	  <tag>
+		<description>Right Side, Center Row, Head</description>
+		<tagId>2639167</tagId>
+		<side>2</side>
+		<heartStrength>5</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>6</rightLungStrength>
+		<xPosition>1</xPosition>
+		<yPosition>3</yPosition>
+	  </tag>
+	  <tag>
+		<description>Right Side, Center Row, Center Right</description>
+		<tagId>2595772</tagId>
+		<side>2</side>
+		<heartStrength>5</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>6</rightLungStrength>
 		<xPosition>2</xPosition>
 		<yPosition>3</yPosition>
-	  </tag>
+	  </tag>
 	  <tag>
-		<description>Right Side, Bottom Row, Tail</description>
-		<tagId></tagId>
+		<description>Right Side, Center Row, Center</description>
+		<tagId>2595844</tagId>
 		<side>2</side>
-		<heartStrength></heartStrength>
-		<leftLungStrength></leftLungStrength>
-		<rightLungStrength></rightLungStrength>
+		<heartStrength>5</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>7</rightLungStrength>
 		<xPosition>3</xPosition>
 		<yPosition>3</yPosition>
-	  </tag>
-</rfidTags> 
+	  </tag>
+		  <tag>
+		<description>Right Side, Center Row, Center Left</description>
+		<tagId>2597645</tagId>
+		<side>2</side>
+		<heartStrength>3</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>7</rightLungStrength>
+		<xPosition>4</xPosition>
+		<yPosition>3</yPosition>
+	  </tag>
+		  <tag>
+		<description>Right Side, Center Row, Tail</description>
+		<tagId>2651831</tagId>
+		<side>2</side>
+		<heartStrength>1</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>7</rightLungStrength>
+		<xPosition>5</xPosition>
+		<yPosition>3</yPosition>
+	  </tag>
+	  <tag>
+		<description>Right Side, Center Row + 1, Head</description>
+		<tagId>2654446</tagId>
+		<side>2</side>
+		<heartStrength>3</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>7</rightLungStrength>
+		<xPosition>1</xPosition>
+		<yPosition>4</yPosition>
+	  </tag>
+	  <tag>
+		<description>Right Side, Center Row + 1, Center Right</description>
+		<tagId>2597867</tagId>
+		<side>2</side>
+		<heartStrength>3</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>7</rightLungStrength>
+		<xPosition>2</xPosition>
+		<yPosition>4</yPosition>
+	  </tag>
+	  <tag>
+		<description>Right Side, Center Row + 1, Center</description>
+		<tagId>2590244</tagId>
+		<side>2</side>
+		<heartStrength>3</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>7</rightLungStrength>
+		<xPosition>3</xPosition>
+		<yPosition>4</yPosition>
+	  </tag>
+		  <tag>
+		<description>Right Side, Center Row + 1, Center Left</description>
+		<tagId>2590496</tagId>
+		<side>2</side>
+		<heartStrength>3</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>8</rightLungStrength>
+		<xPosition>4</xPosition>
+		<yPosition>4</yPosition>
+	  </tag>
+		  <tag>
+		<description>Right Side, Center Row + 1, Tail</description>
+		<tagId>2597893</tagId>
+		<side>2</side>
+		<heartStrength>1</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>8</rightLungStrength>
+		<xPosition>5</xPosition>
+		<yPosition>4</yPosition>
+	  </tag>
+	  <tag>
+		<description>Right Side, Top Row, Head</description>
+		<tagId>2601292</tagId>
+		<side>2</side>
+		<heartStrength>1</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>8</rightLungStrength>
+		<xPosition>1</xPosition>
+		<yPosition>5</yPosition>
+	  </tag>
+	  <tag>
+		<description>Right Side, Top Row, Center Right</description>
+		<tagId>2604303</tagId>
+		<side>2</side>
+		<heartStrength>1</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>8</rightLungStrength>
+		<xPosition>2</xPosition>
+		<yPosition>5</yPosition>
+	  </tag>
+	  <tag>
+		<description>Right Side, Top Row, Center</description>
+		<tagId>2584799</tagId>
+		<side>2</side>
+		<heartStrength>1</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>8</rightLungStrength>
+		<xPosition>3</xPosition>
+		<yPosition>5</yPosition>
+	  </tag>
+		  <tag>
+		<description>Right Side, Top Row, Center Left</description>
+		<tagId>2594580</tagId>
+		<side>2</side>
+		<heartStrength>1</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>8</rightLungStrength>
+		<xPosition>4</xPosition>
+		<yPosition>5</yPosition>
+	  </tag>
+		  <tag>
+		<description>Right Side, Top Row, Tail</description>
+		<tagId>2653790</tagId>
+		<side>2</side>
+		<heartStrength>1</heartStrength>
+		<leftLungStrength>0</leftLungStrength>
+		<rightLungStrength>9</rightLungStrength>
+		<xPosition>5</xPosition>
+		<yPosition>5</yPosition>
+	  </tag>	  
+</rfidTags>
