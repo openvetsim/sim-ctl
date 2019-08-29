@@ -143,10 +143,10 @@ int main(int argc, char *argv[])
 		switch ( sense )
 		{
 			case 0:
-				if ( ain > (baseline + 30 ) )
+				if ( ain > (baseline + 50 ) )
 				{
 					senseCount++;
-					if ( senseCount >= 5 )
+					if ( senseCount >= 100 )
 					{
 						sense = 1;
 						senseCount = 0;
