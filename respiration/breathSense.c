@@ -149,6 +149,7 @@ int main(int argc, char *argv[])
 					if ( senseCount >= 100 )
 					{
 						sense = 1;
+						shmData->respiration.active = 1;
 						senseCount = 0;
 					}
 				}
@@ -160,6 +161,7 @@ int main(int argc, char *argv[])
 					sprintf(msgbuf, "Breath: %d, Baseline %d", ain, baseline );
 					log_message("", msgbuf); 
 					sense = 0;
+					shmData->respiration.active = 0;
 					senseCount = 0;
 					activeLoops = 0;
 				}

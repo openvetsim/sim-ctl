@@ -138,6 +138,7 @@ int main(int argc, char *argv[])
 	shmData->cardiac.rate = 80;
 	shmData->respiration.awRR = 50;
 	shmData->respiration.manual_breath = 0;
+	shmData->respiration.active = 0;
 	shmData->cpr.last = 0;
 	shmData->cpr.compression = 0;
 	shmData->cpr.release = 0;
