@@ -170,6 +170,14 @@
 					$('#tag').text(lastTag );
 					$('#pos').text(response.auscultation.side+" "+response.auscultation.row+" "+response.auscultation.col );
 				}
+				if ( response.auscultation.side > 0 )
+				{
+					$('.tag').css({'background-color':'#017813'} );
+				}
+				else
+				{
+					$('.tag').css({'background-color':''} );
+				}
 				$('#last').text(response.cpr.last );
 				$('#xval').text(response.cpr.x );
 				$('#yval').text(response.cpr.y );
