@@ -168,7 +168,14 @@
 				{
 					lastTag = response.auscultation.tag;
 					$('#tag').text(lastTag );
-					$('#pos').text(response.auscultation.side+" "+response.auscultation.row+" "+response.auscultation.col );
+					if ( response.auscultation.side != "0" )
+					{
+						$('#pos').text(response.auscultation.side+" "+response.auscultation.row+" "+response.auscultation.col );
+					}
+					else
+					{
+						$('#pos').text("- - -");
+					}
 				}
 				if ( response.auscultation.side > 0 )
 				{
