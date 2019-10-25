@@ -136,12 +136,15 @@
 		}           
 	};
 
+	var chartColor = "#999999";
+
 	$(function () {
 		$('.gauge-arrow').cmGauge();
 		getSample();
 		var canvas = document.getElementById('cprTrace');
 		const context = canvas.getContext('2d');
-		ctx.fillRect(0, 0, 249, 149 );
+		ctx.fillStyle = chartColor;
+		ctx.fillRect(0, 0, 250, 150 );
 	});
 	var thisServer = window.location.origin;
 	var lastTag;
@@ -204,78 +207,70 @@
 	var lastXbit = 0;
 	var lastYbit = 0;
 	var lastZbit = 0;
-	var zOffset = 16000;
+	
 	var canvas = document.getElementById('cprTrace');
 	const ctx = canvas.getContext('2d');
+	
+	function drawBit(lastBit, newBit, color )
+	{
+		ctx.beginPath();
+		ctx.strokeStyle = color;
+		if ( nextX == 0 )
+		{
+			ctx.fillRect(nextX, newBit, 1, 1 );
+		}
+		else
+		{
+			ctx.moveTo(nextX - 1, lastBit );
+			ctx.lineTo(nextX, newBit );
+		}
+		lastBit = newBit;
+		ctx.stroke();
+		return ( lastBit );
+	}
+	
 	function updateChart(cpr )
 	{
 		
 		ctx.beginPath();
+		ctx.fillStyle = chartColor;
 		ctx.fillRect(nextX, 0, 10, 199 );
-		ctx.strokeStyle = "#000000";
-		ctx.stroke();
 		
 		var xbit = xyz_scale(cpr.x );
 		var ybit = xyz_scale(cpr.y );
 		var zbit = xyz_scale(cpr.z );
 		
-		//console.log(cpr.x, cpr.y, cpr.z, xbit, ybit, zbit );
-		ctx.beginPath();
-		ctx.strokeStyle = "#FF0000";
-		if ( nextX == 0 )
+		switch ( nextX % 3 )
 		{
-			ctx.fillRect(nextX, xbit, 1, 1 );
+			case 0:
+				lastXbit = drawBit(lastXbit, xbit, "#FF0000" );
+				lastYbit = drawBit(lastYbit, ybit, "#00FF00" );
+				lastZbit = drawBit(lastZbit, zbit, "#0000FF" );
+				break;
+			
+			case 1:
+				lastYbit = drawBit(lastYbit, ybit, "#00FF00" );
+				lastZbit = drawBit(lastZbit, zbit, "#0000FF" );
+				lastXbit = drawBit(lastXbit, xbit, "#FF0000" );
+				break;
+				
+			case 2:
+				lastZbit = drawBit(lastZbit, zbit, "#0000FF" );
+				lastXbit = drawBit(lastXbit, xbit, "#FF0000" );
+				lastYbit = drawBit(lastYbit, ybit, "#00FF00" );
+				break;
 		}
-		else
-		{
-			ctx.moveTo(nextX - 1, lastXbit );
-			ctx.lineTo(nextX,  xbit );
-		}
-		lastXbit = xbit;
-		ctx.stroke();
-		
-		
-		ctx.beginPath();
-		ctx.strokeStyle = "#00FF00";
-		if ( nextX == 0 )
-		{
-			ctx.fillRect(nextX, ybit, 1, 1 );
-		}
-		else
-		{
-			ctx.moveTo(nextX - 1, lastYbit );
-			ctx.lineTo(nextX,  ybit );
-		}
-		lastYbit = ybit;
-		ctx.stroke();
-		
-		
-		ctx.beginPath();
-		ctx.strokeStyle = "#0000FF";
-		if ( nextX == 0 )
-		{
-			ctx.fillRect(nextX, zbit, 1, 1 );
-		}
-		else
-		{
-			ctx.moveTo(nextX - 1, lastZbit );
-			ctx.lineTo(nextX,  zbit );
-		}
-		lastZbit = zbit;
-		ctx.stroke();
-		
 		nextX = (nextX + 1) % 250;
-		
 	}
 	
 	function xyz_scale(val )
 	{
 		// Scale from range to bit, 0 to 200
 		val = parseInt(val );
-		val2 = ( val + 32000 ); // Make positive, range of 0 to 64000
-		val3 = ( val2 / 64000 ) * 200;
+		val2 = ( val + 36000 ); // Make positive, range of 0 to 72000
+		val3 = ( val2 / 72000 ) * 200;
 		val4 = Math.round( val3 );
-		return (  val4 );
+		return (  val4 - 20 );
 	}
 
 </script>
