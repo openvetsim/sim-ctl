@@ -559,7 +559,12 @@ tagCheck(uint64_t newid)
 		}
 	}
 	// Tag not found
-	shmData->auscultation.side = 0;
+	shmData->auscultation.side = 3;
+	shmData->auscultation.col  = 9;
+	shmData->auscultation.row  = 9;
+	shmData->auscultation.heartStrength = 0;
+	shmData->auscultation.leftLungStrength = 0;
+	shmData->auscultation.rightLungStrength = 0;
 	return ( -1 );
 }
 
