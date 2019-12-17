@@ -1696,7 +1696,14 @@ runLung( void )
 				
 				// The duration should be 30% of the respiration period
 #define INH_PERCENT		(0.30)
-				periodSeconds = ( 1 / (double)shmData->respiration.rate ) * 60;
+				if ( shmData->respiration.rate > 0 )
+				{
+					periodSeconds = ( 1 / (double)shmData->respiration.rate ) * 60;
+				}
+				else
+				{
+					periodSeconds = 2;
+				}
 				periodSeconds *= INH_PERCENT;
 				if ( periodSeconds < 0 )
 				{
