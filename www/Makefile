@@ -8,6 +8,7 @@
 
 default:
 
+clean:
 
 install:
 	sudo cp -u -r html /var/www

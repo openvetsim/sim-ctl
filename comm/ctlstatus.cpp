@@ -110,6 +110,10 @@ sendStatus(void )
 	makejson(cout, "ain", itoa(shmData->manual_breath_ain ) );
 	cout << ",\n";
 	makejson(cout, "active", itoa(shmData->respiration.active ) );
+	cout << ",\n";
+	makejson(cout, "riseState", itoa(shmData->respiration.riseState ) );
+	cout << ",\n";
+	makejson(cout, "fallState", itoa(shmData->respiration.fallState ) );
 	cout << "\n},\n";
 	
 	cout << " \"cpr\" : {\n";

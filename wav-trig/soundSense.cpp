@@ -43,16 +43,9 @@
 #include <sstream>
 #include <cmath>
 
-#ifdef USE_BBBGPIO
-	#include <GPIO/GPIOManager.h>
-	#include <GPIO/GPIOConst.h>
+#define TURN_ON			GPIO_TURN_ON
+#define TURN_OFF		GPIO_TURN_OFF
 
-	#define TURN_ON			GPIO::HIGH
-	#define TURN_OFF		GPIO::LOW
-#else
-	#define TURN_ON			GPIO_TURN_ON
-	#define TURN_OFF		GPIO_TURN_OFF
-#endif
 
 #include "wavTrigger.h"
 #include "../cardiac/rfidScan.h"
@@ -84,6 +77,9 @@ pthread_t threadInfo3;
 /* prototype for thread routines */
 void *sync_thread ( void *ptr );
 void runHeart(void );
+void tankOnOff(int control );
+void lungFall(int control );
+void lungRise(int control );
 void runLung(void );
 void initialize_timers(void );
 timer_t heart_timer;
@@ -532,27 +528,15 @@ int heartState = 0;
 unsigned int lungLast = 0;
 int lungState = 0;
 
-#ifdef USE_BBBGPIO
-int tankPin;
-int riseLPin;
-int riseRPin;
-int fallPin;
-//int pulsePin;
-
-GPIO::GPIOManager* gp;
-#else
 FILE *tankPin;
 FILE *riseLPin;
 FILE *riseRPin;
 FILE *fallPin;
-//FILE *pulsePin;
-#endif
 
 int pumpOnOff;
 int riseOnOff;
 int fallOnOff;
 int tankVolume;
-// int riseTime;
 
 void doReport(void )
 {
@@ -615,11 +599,8 @@ checkTank()
 	if ( ain2 > TANK_THREASHOLD_HI )
 	{
 		// Turn off
-	#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-	#else
 		gpioPinSet(tankPin, TURN_OFF );
-	#endif
+
 		if ( debug && tankOn  )
 		{
 			printf("Tank Off: %d\n", ain2 );
@@ -629,11 +610,7 @@ checkTank()
 	if ( ain2 < TANK_THREASHOLD_LO )
 	{
 		// Turn on
-	#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_ON );
-	#else
 		gpioPinSet(tankPin, TURN_ON );
-	#endif
 		if ( debug && ! tankOn )
 		{
 			printf("Tank On: %d\n", ain2 );
@@ -644,28 +621,22 @@ checkTank()
 	// Sensor not working. Force on. The pump stalls at around 5 PSI, so it should be ok.
 	//gp->setValue(tankPin, TURN_ON );
 	
-	// Or, configured for external compressor. 
-	#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-	#else
-		gpioPinSet(tankPin, TURN_OFF );
-	#endif
+	// Or, configured for external compressor.
+	gpioPinSet(tankPin, TURN_OFF );
 #endif
 }
-void allAirOff(void )
+void allAirOff(int quiet )
 {
 	if ( debug ) printf("ALL OFF\n" );
-#ifdef USE_BBBGPIO
-	gp->setValue(tankPin, TURN_OFF );
-	gp->setValue(riseLPin, TURN_OFF );
-	gp->setValue(riseRPin, TURN_OFF );
-	gp->setValue(fallPin, TURN_OFF );
-#else
 	gpioPinSet(tankPin, TURN_OFF );
 	gpioPinSet(riseLPin, TURN_OFF );
 	gpioPinSet(riseRPin, TURN_OFF );
 	gpioPinSet(fallPin, TURN_OFF );
-#endif
+	if ( ! quiet )
+	{
+		shmData->respiration.riseState = 0;
+		shmData->respiration.fallState = 0;
+	}
 }
 /*
  * Function: ss_signal_handler
@@ -684,11 +655,11 @@ void ss_signal_handler(int sig )
 {
 	switch(sig) {
 	case SIGHUP:
-		allAirOff();
+		allAirOff(0);
 		log_message("","hangup signal caught");
 		break;
 	case SIGTERM:
-		allAirOff();
+		allAirOff(0);
 		log_message("","terminate signal caught");
 		
 		exit(0);
@@ -768,36 +739,24 @@ main(int argc, char *argv[] )
 
 	// Controls for Chest Rise/Fall
 
-#ifdef USE_BBBGPIO
-	gp = GPIO::GPIOManager::getInstance();
-	tankPin = GPIO::GPIOConst::getInstance()->getGpioByKey("P8_11" ); // GPIO_45
-	riseLPin = GPIO::GPIOConst::getInstance()->getGpioByKey("P8_13" ); // GPIO_23
-	riseRPin = GPIO::GPIOConst::getInstance()->getGpioByKey("P8_8" ); // GPIO_67
-	fallPin = GPIO::GPIOConst::getInstance()->getGpioByKey("P8_10" ); // GPIO_68
-//	pulsePin = GPIO::GPIOConst::getInstance()->getGpioByKey("P8_45" ); // GPIO_70
-	
-	gp->exportPin(tankPin );
-	gp->setDirection(tankPin, GPIO::OUTPUT );	
-	gp->exportPin(riseLPin );
-	gp->setDirection(riseLPin, GPIO::OUTPUT );
-	gp->exportPin(riseRPin );
-	gp->setDirection(riseRPin, GPIO::OUTPUT );
-	gp->exportPin(fallPin );
-	gp->setDirection(fallPin, GPIO::OUTPUT );
-//	gp->exportPin(pulsePin );
-//	gp->setDirection(pulsePin, GPIO::OUTPUT );
-#else
 	tankPin = gpioPinOpen(45, GPIO_OUTPUT );	// P8_11
 	riseLPin = gpioPinOpen(23, GPIO_OUTPUT );	// P8_13
 	riseRPin = gpioPinOpen(67, GPIO_OUTPUT );	// P8_8
 	fallPin = gpioPinOpen(68, GPIO_OUTPUT );	// P8_10
 //	pulsePin = gpioPinOpen(70, GPIO_OUTPUT );	// P8_45
-#endif
-	allAirOff();
-	
+
+	allAirOff(1 );
 	if ( ( debug < 1 ) && ( ldebug == 0 ) )
 	{
+		if ( debug > 0 )
+		{
+			printf("Calling daemonize\n" );
+		}
 		daemonize();
+	}
+	else
+	{
+		printf("Skip daemonize\n" );
 	}
 	if ( debug > 1 )
 	{
@@ -809,14 +768,25 @@ main(int argc, char *argv[] )
 	sigaction (SIGPIPE, &new_action, NULL);
 	signal(SIGHUP,ss_signal_handler); /* catch hangup signal */
 	signal(SIGTERM,ss_signal_handler); /* catch kill signal */
-	
+	if ( debug > 0 )
+	{
+		printf("ldebug is %d\n", ldebug );
+	}
 	if ( !ldebug )
 	{
+		if ( debug > 0 )
+		{
+			printf("Calling initSHM\n" );
+		}
 		sts = initSHM(SHM_OPEN );
+		if ( debug > 0 )
+		{
+			printf("initSHM returned\n" );
+		}
 		if ( sts  )
 		{
 			perror("initSHM");
-			allAirOff();
+			allAirOff(1);
 			return (-1 );
 		}
 	}
@@ -848,7 +818,7 @@ main(int argc, char *argv[] )
 	{
 		printf("Shut Off air\n" );
 	}
-	allAirOff(); // Make sure pump is off before doing other init operations
+	allAirOff(0); // Make sure pump is off before doing other init operations
 	if ( sfd < 0 )
 	{
 		sprintf(msgbuf, "No SIO Port. Running Silent" );
@@ -963,54 +933,30 @@ main(int argc, char *argv[] )
 			switch ( i % 5 )
 			{
 				case 0:
-#ifdef USE_BBBGPIO
-					gp->setValue(fallPin, TURN_ON );
-#else
 					gpioPinSet(fallPin, TURN_ON );
-#endif
 					break;
 				case 1:
-#ifdef USE_BBBGPIO
-					gp->setValue(riseLPin, TURN_ON );
-#else
 					gpioPinSet(riseLPin, TURN_ON );
-#endif
 					break;
 				case 2:
-#ifdef USE_BBBGPIO
-					gp->setValue(riseRPin, TURN_ON );	
-#else
 					gpioPinSet(riseRPin, TURN_ON );
-#endif				
 					break;
 				case 3:
-#ifdef USE_BBBGPIO
-					gp->setValue(tankPin, TURN_ON );
-#else
 					gpioPinSet(tankPin, TURN_ON );
-#endif
 					break;
 				case 4:
-#ifdef USE_BBBGPIO
-					gp->setValue(tankPin, TURN_OFF );
-					gp->setValue(riseLPin, TURN_OFF );
-					gp->setValue(riseRPin, TURN_OFF );
-					gp->setValue(fallPin, TURN_OFF );
-//					gp->setValue(pulsePin, TURN_OFF );
-#else
 					gpioPinSet(tankPin, TURN_OFF );
 					gpioPinSet(riseLPin, TURN_OFF );
 					gpioPinSet(riseRPin, TURN_OFF );
 					gpioPinSet(fallPin, TURN_OFF );
 //					gpioPinSet(pulsePin, TURN_OFF );
-#endif				
 					break;
 			}
 
 			printf("%d\n", i );
 		}
 		wav.trackPlayPoly(0, 5);
-		allAirOff();
+		allAirOff(0);
 		exit ( 0 );
 	}
 	//wav.masterGain(MIN_VOLUME);
@@ -1026,7 +972,7 @@ main(int argc, char *argv[] )
 	if ( sts )
 	{
 		perror("comm.openListen()" );
-		allAirOff();
+		allAirOff(0);
 		exit ( -2 );
 	}
 
@@ -1149,11 +1095,7 @@ sync_thread ( void *ptr )
 	if ( sts != 0 )
 	{
 		perror("comm.openListen" );
-#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-#else
 		gpioPinSet(tankPin, TURN_OFF );
-#endif
 		exit ( -4 );
 	}
 	while ( 1 )
@@ -1288,11 +1230,6 @@ runHeart ( void )
 			if ( heartLast != current.heartCount )
 			{
 				heartLast = current.heartCount;
-#ifdef USE_BBBGPIO
-//				gp->setValue(pulsePin, TURN_ON );
-#else
-//				gpioPinSet(pulsePin, TURN_ON );
-#endif
 				//if ( shmData->auscultation.side != 0 )
 				//{
 					its.it_interval.tv_sec = 0;
@@ -1306,11 +1243,7 @@ runHeart ( void )
 						perror("runHeart: timer_settime");
 						//sprintf(msgbuf, "runHeart: timer_settime: %s", strerror(errno) );
 						//log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-						gp->setValue(tankPin, TURN_OFF );
-#else
 						gpioPinSet(tankPin, TURN_OFF );
-#endif
 						exit ( -1 );
 					}
 				//}
@@ -1321,11 +1254,7 @@ runHeart ( void )
 			{
 				//if ( shmData->auscultation.side != 0 )
 				//{
-#ifdef USE_BBBGPIO
-//					gp->setValue(pulsePin, TURN_OFF );
-#else
-//					gpioPinSet(pulsePin, TURN_OFF );
-#endif
+//					gpioPinSet(pulsePin, TURN_OFF )
 					wav.trackPlayPoly(0, lubdub);
 					//sprintf(msgbuf, "runHeart: lub (%d) Gain is %d", lub, heartGain );
 					//log_message("", msgbuf );
@@ -1379,33 +1308,16 @@ rise_handler(int sig, siginfo_t *si, void *uc)
 	if ( shmData->respiration.chest_movement )
 	{
 		// Stop rise
-	#ifdef USE_BBBGPIO
-		gp->setValue(riseLPin, TURN_OFF );
-		gp->setValue(riseRPin, TURN_OFF );
-	#else
-		gpioPinSet(riseLPin, TURN_OFF );
-		gpioPinSet(riseRPin, TURN_OFF );
-	#endif
+		lungRise(TURN_OFF );
 		riseOnOff = 0;
 		usleep(10000);	// Delay 10 MSEC before fall
-	#ifdef USE_BBBGPIO
-		gp->setValue(fallPin, TURN_ON );
-	#else
-		gpioPinSet(fallPin, TURN_ON );
-	#endif
+		lungFall(TURN_ON );
 		fallOnOff = 1;
 	}
 	else
 	{
-	#ifdef USE_BBBGPIO
-		gp->setValue(riseLPin, TURN_OFF );
-		gp->setValue(riseRPin, TURN_OFF );
-		gp->setValue(fallPin, TURN_OFF );
-	#else
-		gpioPinSet(riseLPin, TURN_OFF );
-		gpioPinSet(riseRPin, TURN_OFF );
-		gpioPinSet(fallPin, TURN_OFF );
-	#endif
+		lungRise(TURN_OFF );
+		lungFall(TURN_OFF );
 		riseOnOff = 0;
 		fallOnOff = 0;
 	}
@@ -1428,11 +1340,7 @@ initialize_timers(void )
 		perror("sigaction");
 		sprintf(msgbuf, "sigaction() fails for Pulse Timer: %s", strerror(errno) );
 		log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-#else
-		gpioPinSet(tankPin, TURN_OFF );
-#endif
+		tankOnOff(TURN_OFF );
 		exit ( -1 );
 	}
 	// Block timer signal temporarily
@@ -1443,11 +1351,7 @@ initialize_timers(void )
 		perror("sigprocmask");
 		sprintf(msgbuf, "sigprocmask() fails for Pulse Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-#else
-		gpioPinSet(tankPin, TURN_OFF );
-#endif
+		tankOnOff(TURN_OFF );
 		exit ( -1 );
 	}
 	// Create the Timer
@@ -1460,11 +1364,7 @@ initialize_timers(void )
 		perror("timer_create" );
 		sprintf(msgbuf, "timer_create() fails for Pulse Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-#else
-		gpioPinSet(tankPin, TURN_OFF );
-#endif
+		tankOnOff(TURN_OFF );
 		exit (-1);
 	}
     if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
@@ -1472,11 +1372,7 @@ initialize_timers(void )
 		perror("sigprocmask");
 		sprintf(msgbuf, "sigprocmask() fails for Pulse Timer%s ", strerror(errno) );
 		log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-#else
-		gpioPinSet(tankPin, TURN_OFF );
-#endif
+		tankOnOff(TURN_OFF );
 		exit ( -1 );
 	}
 	
@@ -1489,11 +1385,7 @@ initialize_timers(void )
 		perror("sigaction");
 		sprintf(msgbuf, "sigaction() fails for Breath Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-#else
-		gpioPinSet(tankPin, TURN_OFF );
-#endif
+		tankOnOff(TURN_OFF );
 		exit(-1 );
 	}
 	// Block timer signal temporarily
@@ -1504,11 +1396,7 @@ initialize_timers(void )
 		perror("sigprocmask");
 		sprintf(msgbuf, "sigprocmask() fails for Breath Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-#else
-		gpioPinSet(tankPin, TURN_OFF );
-#endif
+		tankOnOff(TURN_OFF );
 		exit ( -1 );
 	}
 	// Create the Timer
@@ -1521,11 +1409,7 @@ initialize_timers(void )
 		perror("timer_create" );
 		sprintf(msgbuf, "timer_create() fails for Breath Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-#else
-		gpioPinSet(tankPin, TURN_OFF );
-#endif
+		tankOnOff(TURN_OFF );
 		exit (-1);
 	}
 	
@@ -1534,11 +1418,7 @@ initialize_timers(void )
 		perror("sigprocmask");
 		sprintf(msgbuf, "sigprocmask() fails for Breath Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-#else
-		gpioPinSet(tankPin, TURN_OFF );
-#endif
+		tankOnOff(TURN_OFF );
 		exit ( -1 );
 	}
 	
@@ -1551,11 +1431,7 @@ initialize_timers(void )
 		perror("sigaction");
 		sprintf(msgbuf, "sigaction() fails for Rise Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-#else
-		gpioPinSet(tankPin, TURN_OFF );
-#endif
+		tankOnOff(TURN_OFF );
 		exit(-1 );
 	}
 	// Block timer signal temporarily
@@ -1566,11 +1442,7 @@ initialize_timers(void )
 		perror("sigprocmask");
 		sprintf(msgbuf, "sigprocmask() fails for Rise Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-#else
-		gpioPinSet(tankPin, TURN_OFF );
-#endif
+		tankOnOff(TURN_OFF );
 		exit ( -1 );
 	}
 	// Create the Timer
@@ -1583,11 +1455,7 @@ initialize_timers(void )
 		perror("timer_create" );
 		sprintf(msgbuf, "timer_create() fails for Rise Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-#else
-		gpioPinSet(tankPin, TURN_OFF );
-#endif
+		tankOnOff(TURN_OFF );
 		exit (-1);
 	}
 	
@@ -1596,11 +1464,7 @@ initialize_timers(void )
 		perror("sigprocmask");
 		sprintf(msgbuf, "sigprocmask() fails for Rise Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-		gp->setValue(tankPin, TURN_OFF );
-#else
-		gpioPinSet(tankPin, TURN_OFF );
-#endif
+		tankOnOff(TURN_OFF );
 		exit ( -1 );
 	}
 }
@@ -1608,33 +1472,30 @@ initialize_timers(void )
 void
 tankOnOff(int control )
 {
-#ifdef USE_BBBGPIO
-	gp->setValue(tankPin, control );
-#else
 	gpioPinSet(tankPin, control );
-#endif	
 }
 
 void
 lungFall(int control )
 {
-#ifdef USE_BBBGPIO
-	gp->setValue(fallPin, control );
-#else
 	gpioPinSet(fallPin, control );
-#endif
+
+	if ( control == TURN_ON )
+		shmData->respiration.fallState = 1;
+	else
+		shmData->respiration.fallState = 0;
 }
 
 void
 lungRise(int control )
 {
-#ifdef USE_BBBGPIO
-	gp->setValue(riseLPin, control );
-	gp->setValue(riseRPin, control );
-#else
 	gpioPinSet(riseLPin, control );
 	gpioPinSet(riseRPin, control );
-#endif
+
+	if ( control == TURN_ON )
+		shmData->respiration.riseState = 1;
+	else
+		shmData->respiration.riseState = 0;
 }
 /* Lung State:
 	0 - Idle. Waiting for Sync. When Sync Received:
@@ -1656,7 +1517,7 @@ runLung( void )
 	
 	if ( ! shmData->respiration.chest_movement )
 	{
-		allAirOff();
+		allAirOff(0);
 	}
 
 	if ( shmData->auscultation.side != 0  )

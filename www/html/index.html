@@ -88,6 +88,22 @@
 				{
 					$('.tag').css({'background-color':''} );
 				}
+				if ( response.respiration.riseState > 0 )
+				{
+					$('#riseState').css({'background-color':'#0f0'} );
+				}
+				else
+				{
+					$('#riseState').css({'background-color':'#bbb'} );
+				}
+				if ( response.respiration.fallState > 0 )
+				{
+					$('#fallState').css({'background-color':'#0f0'} );
+				}
+				else
+				{
+					$('#fallState').css({'background-color':'#bbb'} );
+				}
 				$('#last').text(response.cpr.last );
 				$('#xval').text(response.cpr.x );
 				$('#yval').text(response.cpr.y );
@@ -204,6 +220,13 @@
 		color: red;
 		display: inline-block;
 	}
+	.dot {
+	  height: 10px;
+	  width: 10px;
+	  background-color: #bbb;
+	  border-radius: 50%;
+	  display: inline-block;
+	}
     </style>
 </head>
 <body>
@@ -257,7 +280,10 @@
 				 style="transform: rotate(0deg);"></div>
 		</div>
 	</div>
-	
+	<div class="lundLeds">
+		Rise <span class="dot" id="riseState"></span>
+		Fall <span class="dot" id="fallState"></span>
+	</div>
 	<div class="tag clear">
 		<h4>Last Tag</h4>
 		<p id="tag" ></p>

@@ -266,7 +266,7 @@ initSHM(int create )
 	// Round up size to integral number of pages
 	pageSize = getpagesize();
 	allocSize = (mmapSize+pageSize-1) & ~(pageSize-1);
-
+	
 	// Open the Shared Memory space
 	if ( create )
 	{
@@ -297,7 +297,7 @@ initSHM(int create )
 		}
 	}
 	space = mmap((caddr_t)0,
-				mmapSize, 
+				allocSize, 
 				PROT_READ | PROT_WRITE,
 				MAP_SHARED,
 				shmFile,

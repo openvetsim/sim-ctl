@@ -87,6 +87,9 @@ struct respiration
 	int chest_movement;
 	int manual_breath;
 	int active;
+	
+	int riseState;
+	int fallState;
 };
 
 struct auscultation
