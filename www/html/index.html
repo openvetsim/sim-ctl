@@ -10,6 +10,163 @@
     <title>SIMCTL Status</title>
     <link rel="stylesheet" href="css/bootstrap.min.css" >
     <link rel="stylesheet" href="css/cmGauge.css">
+<script src="js/jquery-3.1.1.min.js"></script>
+<script src="js/cmGauge.js"></script>
+<script type="text/javascript">
+	var thisServer = window.location.origin;
+	var lastTag;
+	var nextX = 0;
+	var lastXbit = 0;
+	var lastYbit = 0;
+	var lastZbit = 0;
+	var chartColor = "#999999";
+	var ctx = 0;
+	var canvas;
+	
+	$(function () {
+		CanvasRenderingContext2D.prototype.clear = 
+		CanvasRenderingContext2D.prototype.clear || function (preserveTransform) {
+			if (preserveTransform) {
+			  this.save();
+			  this.setTransform(1, 0, 0, 1, 0, 0);
+			}
+
+			this.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+			if (preserveTransform) {
+				this.restore();
+			}           
+		};
+		
+		$('.gauge-arrow').cmGauge();
+		
+		canvas = document.getElementById('cprTrace');
+		ctx = canvas.getContext('2d');
+		ctx.fillStyle = chartColor;
+		ctx.fillRect(0, 0, 250, 150 );
+		
+		getSample();
+	});
+
+	function getSample() {
+		$.ajax({
+			url: thisServer + '/cgi-bin/ctlstatus.cgi',
+			type: 'get',
+			dataType: 'json',
+			success: function(response,  textStatus, jqXHR ) {
+				$('#gaugeLF .gauge-arrow').trigger('updateGauge', (response.pulse.LF_AIN / 4096 ) * 100);
+				$('#gaugeRF .gauge-arrow').trigger('updateGauge', (response.pulse.RF_AIN / 4096 ) * 100);
+				$('#gaugeLD .gauge-arrow').trigger('updateGauge', (response.pulse.LD_AIN / 4096 ) * 100);
+				$('#gaugeRD .gauge-arrow').trigger('updateGauge', (response.pulse.RD_AIN / 4096 ) * 100);
+				$('#gaugeBreath .gauge-arrow').trigger('updateGauge', (response.respiration.ain / 4096 ) * 100);
+				if ( response.respiration.active > 0 )
+				{
+					$('#gaugeBreath').css({'background-color':'#017813'} );
+				}
+				else
+				{
+					$('#gaugeBreath').css({'background-color':''} );
+				}
+				if ( lastTag !== response.auscultation.tag )
+				{
+					lastTag = response.auscultation.tag;
+					$('#tag').text(lastTag );
+					if ( response.auscultation.side != "0" )
+					{
+						$('#pos').text(response.auscultation.side+" "+response.auscultation.row+" "+response.auscultation.col );
+					}
+					else
+					{
+						$('#pos').text("- - -");
+					}
+				}
+				if ( response.auscultation.side > 0 )
+				{
+					$('.tag').css({'background-color':'#017813'} );
+				}
+				else
+				{
+					$('.tag').css({'background-color':''} );
+				}
+				$('#last').text(response.cpr.last );
+				$('#xval').text(response.cpr.x );
+				$('#yval').text(response.cpr.y );
+				$('#zval').text(response.cpr.z );
+				$('#simmgr').text(response.general.simMgrIPAddr );
+				updateChart(response.cpr );
+			},
+			error: function( jqXHR,  textStatus,  errorThrown){
+				console.log("error: "+textStatus+" : "+errorThrown );
+			},
+			complete: function(jqXHR,  textStatus ){
+				setTimeout(function() {getSample(); }, 20 );
+			}
+		});			
+	}
+	
+	
+	function drawBit(lastBit, newBit, color )
+	{
+		ctx.beginPath();
+		ctx.strokeStyle = color;
+		if ( nextX == 0 )
+		{
+			ctx.fillRect(nextX, newBit, 1, 1 );
+		}
+		else
+		{
+			ctx.moveTo(nextX - 1, lastBit );
+			ctx.lineTo(nextX, newBit );
+		}
+		lastBit = newBit;
+		ctx.stroke();
+		return ( lastBit );
+	}
+	
+	function updateChart(cpr )
+	{
+		ctx.beginPath();
+		ctx.fillStyle = chartColor;
+		ctx.fillRect(nextX, 0, 10, 199 );
+		
+		var xbit = xyz_scale(cpr.x );
+		var ybit = xyz_scale(cpr.y );
+		var zbit = xyz_scale(cpr.z );
+		
+		switch ( nextX % 3 )
+		{
+			case 0:
+				lastXbit = drawBit(lastXbit, xbit, "#FF0000" );
+				lastYbit = drawBit(lastYbit, ybit, "#00FF00" );
+				lastZbit = drawBit(lastZbit, zbit, "#0000FF" );
+				break;
+			
+			case 1:
+				lastYbit = drawBit(lastYbit, ybit, "#00FF00" );
+				lastZbit = drawBit(lastZbit, zbit, "#0000FF" );
+				lastXbit = drawBit(lastXbit, xbit, "#FF0000" );
+				break;
+				
+			case 2:
+				lastZbit = drawBit(lastZbit, zbit, "#0000FF" );
+				lastXbit = drawBit(lastXbit, xbit, "#FF0000" );
+				lastYbit = drawBit(lastYbit, ybit, "#00FF00" );
+				break;
+		}
+		nextX = (nextX + 1) % 250;
+	}
+	
+	function xyz_scale(val )
+	{
+		// Scale from range to bit, 0 to 200
+		val = parseInt(val );
+		val2 = ( val + 36000 ); // Make positive, range of 0 to 72000
+		val3 = ( val2 / 72000 ) * 200;
+		val4 = Math.round( val3 );
+		return (  val4 - 20 );
+	}
+
+</script>
     <style>
     body { background-color:#333; color:white;}
     .container 
@@ -119,161 +276,6 @@
 	</div>
 	<div class='clear'>SimMgr <span id='simmgr'></span></div>
 </div>
-<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-<script src="js/cmGauge.js"></script>
-<script type="text/javascript">
-	CanvasRenderingContext2D.prototype.clear = 
-	CanvasRenderingContext2D.prototype.clear || function (preserveTransform) {
-		if (preserveTransform) {
-		  this.save();
-		  this.setTransform(1, 0, 0, 1, 0, 0);
-		}
-
-		this.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-		if (preserveTransform) {
-			this.restore();
-		}           
-	};
-
-	var chartColor = "#999999";
-
-	$(function () {
-		$('.gauge-arrow').cmGauge();
-		getSample();
-		var canvas = document.getElementById('cprTrace');
-		const context = canvas.getContext('2d');
-		ctx.fillStyle = chartColor;
-		ctx.fillRect(0, 0, 250, 150 );
-	});
-	var thisServer = window.location.origin;
-	var lastTag;
-	function getSample() {
-		$.ajax({
-			url: thisServer + '/cgi-bin/ctlstatus.cgi',
-			type: 'get',
-			dataType: 'json',
-			success: function(response,  textStatus, jqXHR ) {
-				$('#gaugeLF .gauge-arrow').trigger('updateGauge', (response.pulse.LF_AIN / 4096 ) * 100);
-				$('#gaugeRF .gauge-arrow').trigger('updateGauge', (response.pulse.RF_AIN / 4096 ) * 100);
-				$('#gaugeLD .gauge-arrow').trigger('updateGauge', (response.pulse.LD_AIN / 4096 ) * 100);
-				$('#gaugeRD .gauge-arrow').trigger('updateGauge', (response.pulse.RD_AIN / 4096 ) * 100);
-				$('#gaugeBreath .gauge-arrow').trigger('updateGauge', (response.respiration.ain / 4096 ) * 100);
-				if ( response.respiration.active > 0 )
-				{
-					$('#gaugeBreath').css({'background-color':'#017813'} );
-				}
-				else
-				{
-					$('#gaugeBreath').css({'background-color':''} );
-				}
-				if ( lastTag !== response.auscultation.tag )
-				{
-					lastTag = response.auscultation.tag;
-					$('#tag').text(lastTag );
-					if ( response.auscultation.side != "0" )
-					{
-						$('#pos').text(response.auscultation.side+" "+response.auscultation.row+" "+response.auscultation.col );
-					}
-					else
-					{
-						$('#pos').text("- - -");
-					}
-				}
-				if ( response.auscultation.side > 0 )
-				{
-					$('.tag').css({'background-color':'#017813'} );
-				}
-				else
-				{
-					$('.tag').css({'background-color':''} );
-				}
-				$('#last').text(response.cpr.last );
-				$('#xval').text(response.cpr.x );
-				$('#yval').text(response.cpr.y );
-				$('#zval').text(response.cpr.z );
-				$('#simmgr').text(response.general.simMgrIPAddr );
-				updateChart(response.cpr );
-			},
-			error: function( jqXHR,  textStatus,  errorThrown){
-				console.log("error: "+textStatus+" : "+errorThrown );
-			},
-			complete: function(jqXHR,  textStatus ){
-				setTimeout(function() {getSample(); }, 20 );
-			}
-		});			
-	}
-	var nextX = 0;
-	var lastXbit = 0;
-	var lastYbit = 0;
-	var lastZbit = 0;
-	
-	var canvas = document.getElementById('cprTrace');
-	const ctx = canvas.getContext('2d');
-	
-	function drawBit(lastBit, newBit, color )
-	{
-		ctx.beginPath();
-		ctx.strokeStyle = color;
-		if ( nextX == 0 )
-		{
-			ctx.fillRect(nextX, newBit, 1, 1 );
-		}
-		else
-		{
-			ctx.moveTo(nextX - 1, lastBit );
-			ctx.lineTo(nextX, newBit );
-		}
-		lastBit = newBit;
-		ctx.stroke();
-		return ( lastBit );
-	}
-	
-	function updateChart(cpr )
-	{
-		
-		ctx.beginPath();
-		ctx.fillStyle = chartColor;
-		ctx.fillRect(nextX, 0, 10, 199 );
-		
-		var xbit = xyz_scale(cpr.x );
-		var ybit = xyz_scale(cpr.y );
-		var zbit = xyz_scale(cpr.z );
-		
-		switch ( nextX % 3 )
-		{
-			case 0:
-				lastXbit = drawBit(lastXbit, xbit, "#FF0000" );
-				lastYbit = drawBit(lastYbit, ybit, "#00FF00" );
-				lastZbit = drawBit(lastZbit, zbit, "#0000FF" );
-				break;
-			
-			case 1:
-				lastYbit = drawBit(lastYbit, ybit, "#00FF00" );
-				lastZbit = drawBit(lastZbit, zbit, "#0000FF" );
-				lastXbit = drawBit(lastXbit, xbit, "#FF0000" );
-				break;
-				
-			case 2:
-				lastZbit = drawBit(lastZbit, zbit, "#0000FF" );
-				lastXbit = drawBit(lastXbit, xbit, "#FF0000" );
-				lastYbit = drawBit(lastYbit, ybit, "#00FF00" );
-				break;
-		}
-		nextX = (nextX + 1) % 250;
-	}
-	
-	function xyz_scale(val )
-	{
-		// Scale from range to bit, 0 to 200
-		val = parseInt(val );
-		val2 = ( val + 36000 ); // Make positive, range of 0 to 72000
-		val3 = ( val2 / 72000 ) * 200;
-		val4 = Math.round( val3 );
-		return (  val4 - 20 );
-	}
-
-</script>
 
 
 </body>

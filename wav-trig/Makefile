@@ -30,7 +30,7 @@ soundSense: soundSense.cpp wavTrigger.o wavTrigger.h ../comm/shmData.h ../comm/s
 wavTrigger.o: wavTrigger.cpp wavTrigger.h
 
 install: $(installTargets) .FORCE
-	sudo cp  $(installTargets) /usr/local/bin
+	sudo cp -u $(installTargets) /usr/local/bin
 
 clean: .FORCE
 	rm -f $(targets) *.o *.cgi

@@ -1605,6 +1605,37 @@ initialize_timers(void )
 	}
 }
 
+void
+tankOnOff(int control )
+{
+#ifdef USE_BBBGPIO
+	gp->setValue(tankPin, control );
+#else
+	gpioPinSet(tankPin, control );
+#endif	
+}
+
+void
+lungFall(int control )
+{
+#ifdef USE_BBBGPIO
+	gp->setValue(fallPin, control );
+#else
+	gpioPinSet(fallPin, control );
+#endif
+}
+
+void
+lungRise(int control )
+{
+#ifdef USE_BBBGPIO
+	gp->setValue(riseLPin, control );
+	gp->setValue(riseRPin, control );
+#else
+	gpioPinSet(riseLPin, control );
+	gpioPinSet(riseRPin, control );
+#endif
+}
 /* Lung State:
 	0 - Idle. Waiting for Sync. When Sync Received:
 		Start Inflation. 
@@ -1639,183 +1670,162 @@ runLung( void )
 		setLeftLungVolume(0 );	// Set volume only if a change occurred
 		setRightLungVolume(0 );	// Set volume only if a change occurred
 	}
-	switch ( lungState )
+	if ( shmData->respiration.active )
 	{
-		case 0:
-			
-			if ( lungLast != current.breathCount )
-			{
-				lungLast = current.breathCount;
-			// Breath Timer
-				// Clear the interval, run single execution
-				its.it_interval.tv_sec = 0;
-				its.it_interval.tv_nsec = 0;
-				
-				// Set First expiration as the interval plus the delay
-				its.it_value.tv_sec = 0;
-				delayTime = 40000000;	// Delay in ns
-				its.it_value.tv_nsec = delayTime;
-				if (timer_settime(breath_timer, 0, &its, NULL) == -1)
+		lungFall(TURN_OFF );
+		lungRise(TURN_ON );
+	}
+	else
+	{
+		switch ( lungState )
+		{
+			case 0:
+				if ( lungLast != current.breathCount )
 				{
-					perror("runLung: timer_settime");
-					sprintf(msgbuf, "runLung: timer_settime: %s", strerror(errno) );
-					log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-					gp->setValue(tankPin, TURN_OFF );
-#else
-					gpioPinSet(tankPin, TURN_OFF );
-#endif
-					exit ( -1 );
-				}
-#ifdef USE_BBBGPIO
-				gp->setValue(fallPin, TURN_OFF );
-				fallOnOff = 0;
-				usleep(10000);
-				if ( shmData->respiration.chest_movement )
-				{
-					if ( debug ) printf("ON\n" );
-					gp->setValue(riseLPin, TURN_ON );
-					gp->setValue(riseRPin, TURN_ON );
-				}
-#else
-				gpioPinSet(fallPin, TURN_OFF );
-				fallOnOff = 0;
-				usleep(10000);
-				if ( shmData->respiration.chest_movement )
-				{
-					if ( debug ) printf("ON\n" );
-					gpioPinSet(riseLPin, TURN_ON );
-					gpioPinSet(riseRPin, TURN_ON );
-				}
-#endif
-				riseOnOff = 1;
-			// Rise Timer
-				// Clear the interval, run single execution
-				its.it_interval.tv_sec = 0;
-				its.it_interval.tv_nsec = 0;
-				
-				// The duration should be 30% of the respiration period
+					lungLast = current.breathCount;
+				// Breath Timer
+					// Clear the interval, run single execution
+					its.it_interval.tv_sec = 0;
+					its.it_interval.tv_nsec = 0;
+					
+					// Set First expiration as the interval plus the delay
+					its.it_value.tv_sec = 0;
+					delayTime = 40000000;	// Delay in ns
+					its.it_value.tv_nsec = delayTime;
+					if (timer_settime(breath_timer, 0, &its, NULL) == -1)
+					{
+						perror("runLung: timer_settime");
+						sprintf(msgbuf, "runLung: timer_settime: %s", strerror(errno) );
+						log_message("", msgbuf );
+						tankOnOff(TURN_OFF );
+						exit ( -1 );
+					}
+					lungFall(TURN_OFF );
+					fallOnOff = 0;
+					usleep(10000);
+
+					if ( shmData->respiration.chest_movement )
+					{
+						if ( debug ) printf("ON\n" );
+						lungRise(TURN_ON );
+					}
+					riseOnOff = 1;
+				// Rise Timer
+					// Clear the interval, run single execution
+					its.it_interval.tv_sec = 0;
+					its.it_interval.tv_nsec = 0;
+					
+					// The duration should be 30% of the respiration period
 #define INH_PERCENT		(0.30)
-				if ( shmData->respiration.rate > 0 )
+					if ( shmData->respiration.rate > 0 )
+					{
+						periodSeconds = ( 1 / (double)shmData->respiration.rate ) * 60;
+					}
+					else
+					{
+						periodSeconds = 2;
+					}
+					periodSeconds *= INH_PERCENT;
+					if ( periodSeconds < 0 )
+					{
+						sprintf(msgbuf, "runLung: rise periodSeconds is negative period %f rate %d", periodSeconds, shmData->respiration.rate );
+						periodSeconds = 1;
+						log_message("", msgbuf );
+					}
+					fractional = modf(periodSeconds, &integer );
+					its.it_value.tv_sec = (int)integer;
+					delayTime = fractional * 1000000000; //Seconds to nanoseconds
+
+					if ( delayTime < 0 )
+					{
+						sprintf(msgbuf, "runLung: rise delayTime is negative for period %f rate %d", periodSeconds, shmData->respiration.rate );
+						delayTime = 0;
+						log_message("", msgbuf );
+					}
+					its.it_value.tv_nsec = delayTime;
+					
+					/*
+					riseTime = ((int)integer * 1000 ) + ( delayTime /1000/1000 );  // In msec
+
+					if ( riseTime < 0 )
+					{
+						sprintf(msgbuf, "runLung: rise riseTime is negative for period %f rate %d", periodSeconds, shmData->respiration.rate );
+						riseTime = 0;
+						log_message("", msgbuf );
+					}
+					*/
+					if (timer_settime(rise_timer, 0, &its, NULL) == -1)
+					{
+						//perror("runLung: rise timer_settime");
+						sprintf(msgbuf, "runLung: rise timer_settime: %s", strerror(errno) );
+						log_message("", msgbuf );
+						sprintf(msgbuf, "runLung: periodSeconds %f, (%ld : %ld)", periodSeconds, its.it_value.tv_sec, its.it_value.tv_nsec );
+						log_message("", msgbuf );
+						tankOnOff(TURN_OFF );
+						exit ( -1 );
+					}
+				}
+				else if ( current.respiration_rate == 0 )
 				{
-					periodSeconds = ( 1 / (double)shmData->respiration.rate ) * 60;
+					if ( exhLimit-- == 0 )
+					{
+						if ( debug ) printf("OFF\n" );
+						lungFall(TURN_OFF );
+						fallOnOff = 0;
+						lungRise(TURN_OFF );
+						sprintf(msgbuf, "runLung: exhLimit Hit" );
+						log_message("", msgbuf );
+					}
+				}
+				break;
+			case 1:
+				if ( shmData->auscultation.side != 0 )
+				{
+					if ( shmData->auscultation.side == 1 )
+					{
+						wav.trackPlayPoly(0, inhL);
+					}
+					else
+					{
+						wav.trackPlayPoly(0, inhR);
+					}
+
+					if ( debug > 1 )
+					{
+						printf("inh: %d-%d\n", inhR, inhL );
+					}
+					lungState = 0;
+					lungPlaying = 1;
 				}
 				else
 				{
-					periodSeconds = 2;
-				}
-				periodSeconds *= INH_PERCENT;
-				if ( periodSeconds < 0 )
-				{
-					sprintf(msgbuf, "runLung: rise periodSeconds is negative period %f rate %d", periodSeconds, shmData->respiration.rate );
-					periodSeconds = 1;
-					log_message("", msgbuf );
-				}
-				fractional = modf(periodSeconds, &integer );
-				its.it_value.tv_sec = (int)integer;
-				delayTime = fractional * 1000000000; //Seconds to nanoseconds
-
-				if ( delayTime < 0 )
-				{
-					sprintf(msgbuf, "runLung: rise delayTime is negative for period %f rate %d", periodSeconds, shmData->respiration.rate );
-					delayTime = 0;
-					log_message("", msgbuf );
-				}
-				its.it_value.tv_nsec = delayTime;
-				
-				/*
-				riseTime = ((int)integer * 1000 ) + ( delayTime /1000/1000 );  // In msec
-
-				if ( riseTime < 0 )
-				{
-					sprintf(msgbuf, "runLung: rise riseTime is negative for period %f rate %d", periodSeconds, shmData->respiration.rate );
-					riseTime = 0;
-					log_message("", msgbuf );
-				}
-				*/
-				if (timer_settime(rise_timer, 0, &its, NULL) == -1)
-				{
-					//perror("runLung: rise timer_settime");
-					sprintf(msgbuf, "runLung: rise timer_settime: %s", strerror(errno) );
-					log_message("", msgbuf );
-					sprintf(msgbuf, "runLung: periodSeconds %f, (%ld : %ld)", periodSeconds, its.it_value.tv_sec, its.it_value.tv_nsec );
-					log_message("", msgbuf );
-#ifdef USE_BBBGPIO
-					gp->setValue(tankPin, TURN_OFF );
-#else
-					gpioPinSet(tankPin, TURN_OFF );
-#endif
-					exit ( -1 );
-				}
-			}
-			else if ( current.respiration_rate == 0 )
-			{
-				if ( exhLimit-- == 0 )
-				{
-					if ( debug ) printf("OFF\n" );
-#ifdef USE_BBBGPIO
-					gp->setValue(fallPin, TURN_OFF );
-					fallOnOff = 0;
-					gp->setValue(riseLPin, TURN_OFF );
-					gp->setValue(riseRPin, TURN_OFF );
-#else
-					gpioPinSet(tankPin, TURN_OFF );
-					fallOnOff = 0;
-					gpioPinSet(riseLPin, TURN_OFF );
-					gpioPinSet(riseRPin, TURN_OFF );
-#endif
-					sprintf(msgbuf, "runLung: exhLimit Hit" );
-					log_message("", msgbuf );
-				}
-			}
-			break;
-		case 1:
-			if ( shmData->auscultation.side != 0 )
-			{
-				if ( shmData->auscultation.side == 1 )
-				{
-					wav.trackPlayPoly(0, inhL);
-				}
-				else
-				{
-					wav.trackPlayPoly(0, inhR);
-				}
-
-				if ( debug > 1 )
-				{
-					printf("inh: %d-%d\n", inhR, inhL );
-				}
-				lungState = 0;
-				lungPlaying = 1;
-			}
-			else
-			{
-				lungState = 0;
-				lungPlaying = 0;
-			}
-			break;
-#if 0
-		case 2: // No longer used
-			if ( shmData->auscultation.side == 0 )
-			{
-				wav.trackStop(inh );
-				lungState = 0;
-				lungPlaying = 0;
-			}
-			else
-			{
-				// INH playing. Check for completion
-				if ( wav.checkTrack(inh ) == 0 )
-				{
-					// inh done
 					lungState = 0;
 					lungPlaying = 0;
 				}
-			}
-			break;
+				break;
+#if 0
+			case 2: // No longer used
+				if ( shmData->auscultation.side == 0 )
+				{
+					wav.trackStop(inh );
+					lungState = 0;
+					lungPlaying = 0;
+				}
+				else
+				{
+					// INH playing. Check for completion
+					if ( wav.checkTrack(inh ) == 0 )
+					{
+						// inh done
+						lungState = 0;
+						lungPlaying = 0;
+					}
+				}
+				break;
 #endif	
-		default:
-			break;
+			default:
+				break;
+		}
 	}
 }
 
