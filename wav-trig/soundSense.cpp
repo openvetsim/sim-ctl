@@ -1531,7 +1531,7 @@ runLung( void )
 		setLeftLungVolume(0 );	// Set volume only if a change occurred
 		setRightLungVolume(0 );	// Set volume only if a change occurred
 	}
-	if ( shmData->respiration.active )
+	if ( shmData->respiration.active && shmData->respiration.chest_movement )
 	{
 		lungFall(TURN_OFF );
 		lungRise(TURN_ON );
