@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="css/bootstrap.min.css" >
     <link rel="stylesheet" href="css/cmGauge.css">
 <script src="js/jquery-3.1.1.min.js"></script>
-<script src="js/cmGauge.js"></script>
+<script src="js/cmGauge.js?v=1"></script>
 <script type="text/javascript">
 	var thisServer = window.location.origin;
 	var lastTag;
@@ -58,7 +58,7 @@
 				$('#gaugeRF .gauge-arrow').trigger('updateGauge', (response.pulse.RF_AIN / 4096 ) * 100);
 				$('#gaugeLD .gauge-arrow').trigger('updateGauge', (response.pulse.LD_AIN / 4096 ) * 100);
 				$('#gaugeRD .gauge-arrow').trigger('updateGauge', (response.pulse.RD_AIN / 4096 ) * 100);
-				$('#gaugeBreath .gauge-arrow').trigger('updateGauge', (response.respiration.ain / 4096 ) * 100);
+				$('#gaugeBreath .gauge-arrow').trigger('updateGauge', (response.respiration.ain / 512 ) * 100);
 				if ( response.respiration.active > 0 )
 				{
 					$('#gaugeBreath').css({'background-color':'#017813'} );
@@ -276,7 +276,7 @@
 	<div class="pulseGauge clear">
 		<p>Manual Breath</p>
 		<div id="gaugeBreath" class="gauge gauge-green">
-			<div class="gauge-arrow" data-percentage="40"
+			<div class="gauge-arrow" data-percentage="0"
 				 style="transform: rotate(0deg);"></div>
 		</div>
 	</div>
