@@ -20,11 +20,13 @@ default: all
 
 all: 
 
-install: all
-	sudo cp -u simctl /etc/init.d/simctl
+/etc/init.d/simctl: simctl
+	sudo cp simctl /etc/init.d/simctl
 	sudo chmod ug+x /etc/init.d/simctl
 	# sudo insserv simctl
 	sudo update-rc.d simctl defaults
+	
+install: all /etc/init.d/simctl
 	if [ ! -d /simulator ]; then \
 		sudo mkdir /simulator; \
 		sudo chown debian:debian /simulator; \

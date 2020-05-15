@@ -8,9 +8,181 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>SIMCTL Status</title>
-    <link href="css/jquerysctipttop.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="css/bootstrap.min.css" >
     <link rel="stylesheet" href="css/cmGauge.css">
+<script src="js/jquery-3.1.1.min.js"></script>
+<script src="js/cmGauge.js?v=1"></script>
+<script type="text/javascript">
+	var thisServer = window.location.origin;
+	var lastTag;
+	var nextX = 0;
+	var lastXbit = 0;
+	var lastYbit = 0;
+	var lastZbit = 0;
+	var chartColor = "#999999";
+	var ctx = 0;
+	var canvas;
+	
+	$(function () {
+		CanvasRenderingContext2D.prototype.clear = 
+		CanvasRenderingContext2D.prototype.clear || function (preserveTransform) {
+			if (preserveTransform) {
+			  this.save();
+			  this.setTransform(1, 0, 0, 1, 0, 0);
+			}
+
+			this.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+			if (preserveTransform) {
+				this.restore();
+			}           
+		};
+		
+		$('.gauge-arrow').cmGauge();
+		
+		canvas = document.getElementById('cprTrace');
+		ctx = canvas.getContext('2d');
+		ctx.fillStyle = chartColor;
+		ctx.fillRect(0, 0, 250, 150 );
+		
+		getSample();
+	});
+
+	function getSample() {
+		$.ajax({
+			url: thisServer + '/cgi-bin/ctlstatus.cgi',
+			type: 'get',
+			dataType: 'json',
+			success: function(response,  textStatus, jqXHR ) {
+				$('#gaugeLF .gauge-arrow').trigger('updateGauge', (response.pulse.LF_AIN / 4096 ) * 100);
+				$('#gaugeRF .gauge-arrow').trigger('updateGauge', (response.pulse.RF_AIN / 4096 ) * 100);
+				$('#gaugeLD .gauge-arrow').trigger('updateGauge', (response.pulse.LD_AIN / 4096 ) * 100);
+				$('#gaugeRD .gauge-arrow').trigger('updateGauge', (response.pulse.RD_AIN / 4096 ) * 100);
+				$('#gaugeBreath .gauge-arrow').trigger('updateGauge', (response.respiration.ain / 512 ) * 100);
+				if ( response.respiration.active > 0 )
+				{
+					$('#gaugeBreath').css({'background-color':'#017813'} );
+				}
+				else
+				{
+					$('#gaugeBreath').css({'background-color':''} );
+				}
+				if ( lastTag !== response.auscultation.tag )
+				{
+					lastTag = response.auscultation.tag;
+					$('#tag').text(lastTag );
+					if ( response.auscultation.side != "0" )
+					{
+						$('#pos').text(response.auscultation.side+" "+response.auscultation.row+" "+response.auscultation.col );
+					}
+					else
+					{
+						$('#pos').text("- - -");
+					}
+				}
+				if ( response.auscultation.side > 0 )
+				{
+					$('.tag').css({'background-color':'#017813'} );
+				}
+				else
+				{
+					$('.tag').css({'background-color':''} );
+				}
+				if ( response.respiration.riseState > 0 )
+				{
+					$('#riseState').css({'background-color':'#0f0'} );
+				}
+				else
+				{
+					$('#riseState').css({'background-color':'#bbb'} );
+				}
+				if ( response.respiration.fallState > 0 )
+				{
+					$('#fallState').css({'background-color':'#0f0'} );
+				}
+				else
+				{
+					$('#fallState').css({'background-color':'#bbb'} );
+				}
+				$('#last').text(response.cpr.last );
+				$('#xval').text(response.cpr.x );
+				$('#yval').text(response.cpr.y );
+				$('#zval').text(response.cpr.z );
+				$('#simmgr').text(response.general.simMgrIPAddr );
+				updateChart(response.cpr );
+			},
+			error: function( jqXHR,  textStatus,  errorThrown){
+				console.log("error: "+textStatus+" : "+errorThrown );
+			},
+			complete: function(jqXHR,  textStatus ){
+				setTimeout(function() {getSample(); }, 20 );
+			}
+		});			
+	}
+	
+	
+	function drawBit(lastBit, newBit, color )
+	{
+		ctx.beginPath();
+		ctx.strokeStyle = color;
+		if ( nextX == 0 )
+		{
+			ctx.fillRect(nextX, newBit, 1, 1 );
+		}
+		else
+		{
+			ctx.moveTo(nextX - 1, lastBit );
+			ctx.lineTo(nextX, newBit );
+		}
+		lastBit = newBit;
+		ctx.stroke();
+		return ( lastBit );
+	}
+	
+	function updateChart(cpr )
+	{
+		ctx.beginPath();
+		ctx.fillStyle = chartColor;
+		ctx.fillRect(nextX, 0, 10, 199 );
+		
+		var xbit = xyz_scale(cpr.x );
+		var ybit = xyz_scale(cpr.y );
+		var zbit = xyz_scale(cpr.z );
+		
+		switch ( nextX % 3 )
+		{
+			case 0:
+				lastXbit = drawBit(lastXbit, xbit, "#FF0000" );
+				lastYbit = drawBit(lastYbit, ybit, "#00FF00" );
+				lastZbit = drawBit(lastZbit, zbit, "#0000FF" );
+				break;
+			
+			case 1:
+				lastYbit = drawBit(lastYbit, ybit, "#00FF00" );
+				lastZbit = drawBit(lastZbit, zbit, "#0000FF" );
+				lastXbit = drawBit(lastXbit, xbit, "#FF0000" );
+				break;
+				
+			case 2:
+				lastZbit = drawBit(lastZbit, zbit, "#0000FF" );
+				lastXbit = drawBit(lastXbit, xbit, "#FF0000" );
+				lastYbit = drawBit(lastYbit, ybit, "#00FF00" );
+				break;
+		}
+		nextX = (nextX + 1) % 250;
+	}
+	
+	function xyz_scale(val )
+	{
+		// Scale from range to bit, 0 to 200
+		val = parseInt(val );
+		val2 = ( val + 36000 ); // Make positive, range of 0 to 72000
+		val3 = ( val2 / 72000 ) * 200;
+		val4 = Math.round( val3 );
+		return (  val4 - 20 );
+	}
+
+</script>
     <style>
     body { background-color:#333; color:white;}
     .container 
@@ -20,6 +192,10 @@
     h1, h2, h3, h4, p
 	{
 		margin-bottom:10px;
+	}
+	#traceBox
+	{
+		float: left;
 	}
 	.pulseGauge
 	{
@@ -40,9 +216,16 @@
 		border: solid #555555;
 	}
 	.val {
-		display: inline-block;
-		min-width: 80px;
+		min-width: 63px;
 		color: red;
+		display: inline-block;
+	}
+	.dot {
+	  height: 10px;
+	  width: 10px;
+	  background-color: #bbb;
+	  border-radius: 50%;
+	  display: inline-block;
 	}
     </style>
 </head>
@@ -93,162 +276,32 @@
 	<div class="pulseGauge clear">
 		<p>Manual Breath</p>
 		<div id="gaugeBreath" class="gauge gauge-green">
-			<div class="gauge-arrow" data-percentage="40"
+			<div class="gauge-arrow" data-percentage="0"
 				 style="transform: rotate(0deg);"></div>
 		</div>
 	</div>
-	
+	<div class="lundLeds">
+		Rise <span class="dot" id="riseState"></span>
+		Fall <span class="dot" id="fallState"></span>
+	</div>
 	<div class="tag clear">
 		<h4>Last Tag</h4>
 		<p id="tag" ></p>
 		<p id="pos" ></p>
 	</div>
-	<div class="traceBox">
-		<h4>CPR Trace</h4>
-		<canvas id="cprTrace" class="vs-trace" width="500" height="300"></canvas>
-		<br>
-		Last <h4 class='val' id='last'>0</h4>
-		X <h4 class='val' id='xval'></h4>
-		Y <h4 class='val' id='yval'></h4>
-		Z <h4 class='val' id='zval'></h4>
-	</div>
-</div>
-<script src="js/jquery-3.1.1.min.js"></script>
-<script src="js/cmGauge.js"></script>
-<script type="text/javascript">
-	CanvasRenderingContext2D.prototype.clear = 
-	CanvasRenderingContext2D.prototype.clear || function (preserveTransform) {
-		if (preserveTransform) {
-		  this.save();
-		  this.setTransform(1, 0, 0, 1, 0, 0);
-		}
-
-		this.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-		if (preserveTransform) {
-			this.restore();
-		}           
-	};
-
-	$(function () {
-		$('.gauge-arrow').cmGauge();
-		getSample();
-		var canvas = document.getElementById('cprTrace');
-		const context = canvas.getContext('2d');
-		ctx.fillRect(0, 0, 499, 299 );
-	});
-	var thisServer = window.location.origin;
-	var lastTag;
-	function getSample() {
-		$.ajax({
-			url: thisServer + '/cgi-bin/ctlstatus.cgi',
-			type: 'get',
-			dataType: 'json',
-			success: function(response,  textStatus, jqXHR ) {
-				$('#gaugeLF .gauge-arrow').trigger('updateGauge', (response.pulse.LF_AIN / 4096 ) * 100);
-				$('#gaugeRF .gauge-arrow').trigger('updateGauge', (response.pulse.RF_AIN / 4096 ) * 100);
-				$('#gaugeLD .gauge-arrow').trigger('updateGauge', (response.pulse.LD_AIN / 4096 ) * 100);
-				$('#gaugeRD .gauge-arrow').trigger('updateGauge', (response.pulse.RD_AIN / 4096 ) * 100);
-				$('#gaugeBreath .gauge-arrow').trigger('updateGauge', (response.respiration.ain / 4096 ) * 100);
-				if ( lastTag !== response.auscultation.tag )
-				{
-					lastTag = response.auscultation.tag;
-					$('#tag').text(lastTag );
-					$('#pos').text(response.auscultation.side+" "+response.auscultation.row+" "+response.auscultation.col );
-				}
-				$('#last').text(response.cpr.last );
-				$('#xval').text(response.cpr.x );
-				$('#yval').text(response.cpr.y );
-				$('#zval').text(response.cpr.z );
-				updateChart(response.cpr );
-			},
-			error: function( jqXHR,  textStatus,  errorThrown){
-				console.log("error: "+textStatus+" : "+errorThrown );
-			},
-			complete: function(jqXHR,  textStatus ){
-				setTimeout(function() {getSample(); }, 20 );
-			}
-		});			
-	}
-	var nextX = 0;
-	var lastXbit = 0;
-	var lastYbit = 0;
-	var lastZbit = 0;
-	var zOffset = 16000;
-	var canvas = document.getElementById('cprTrace');
-	const ctx = canvas.getContext('2d');
-	function updateChart(cpr )
-	{
-		
-		ctx.beginPath();
-		ctx.fillRect(nextX, 0, 10, 199 );
-		ctx.strokeStyle = "#000000";
-		ctx.stroke();
-		
-		var xbit = xyz_scale(cpr.x );
-		var ybit = xyz_scale(cpr.y );
-		var zbit = xyz_scale(cpr.z );
-		
-		//console.log(cpr.x, cpr.y, cpr.z, xbit, ybit, zbit );
-		ctx.beginPath();
-		ctx.strokeStyle = "#FF0000";
-		if ( nextX == 0 )
-		{
-			ctx.fillRect(nextX, xbit, 1, 1 );
-		}
-		else
-		{
-			ctx.moveTo(nextX - 1, lastXbit );
-			ctx.lineTo(nextX,  xbit );
-		}
-		lastXbit = xbit;
-		ctx.stroke();
-		
-		
-		ctx.beginPath();
-		ctx.strokeStyle = "#00FF00";
-		if ( nextX == 0 )
-		{
-			ctx.fillRect(nextX, ybit, 1, 1 );
-		}
-		else
-		{
-			ctx.moveTo(nextX - 1, lastYbit );
-			ctx.lineTo(nextX,  ybit );
-		}
-		lastYbit = ybit;
-		ctx.stroke();
-		
-		
-		ctx.beginPath();
-		ctx.strokeStyle = "#0000FF";
-		if ( nextX == 0 )
-		{
-			ctx.fillRect(nextX, zbit, 1, 1 );
-		}
-		else
-		{
-			ctx.moveTo(nextX - 1, lastZbit );
-			ctx.lineTo(nextX,  zbit );
-		}
-		lastZbit = zbit;
-		ctx.stroke();
-		
-		nextX = (nextX + 1) % 500;
-		
-	}
 	
-	function xyz_scale(val )
-	{
-		// Scale from range to bit, 0 to 200
-		val = parseInt(val );
-		val2 = ( val + 32000 ); // Make positive, range of 0 to 64000
-		val3 = ( val2 / 64000 ) * 200;
-		val4 = Math.round( val3 );
-		return (  val4 );
-	}
-
-</script>
+	<div class="traceBox">
+		<h4>CPR Trace</h4><div>
+		X <p class='val' id='xval'></p>
+		Y <p class='val' id='yval'></p>
+		Z <p class='val' id='zval'></p>
+		</div>
+		<canvas id="cprTrace" class="vs-trace" width="250" height="150"></canvas>
+		<br>
+		
+	</div>
+	<div class='clear'>SimMgr <span id='simmgr'></span></div>
+</div>
 
 
 </body>

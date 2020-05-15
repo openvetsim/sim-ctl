@@ -66,7 +66,6 @@ main( int argc, const char* argv[] )
 
 	sendStatus();
 	
-	cout << "\n}\n";
 	return ( 0 );
 }
 void
@@ -109,7 +108,12 @@ sendStatus(void )
 
 	cout << " \"respiration\" : {\n";
 	makejson(cout, "ain", itoa(shmData->manual_breath_ain ) );
-
+	cout << ",\n";
+	makejson(cout, "active", itoa(shmData->respiration.active ) );
+	cout << ",\n";
+	makejson(cout, "riseState", itoa(shmData->respiration.riseState ) );
+	cout << ",\n";
+	makejson(cout, "fallState", itoa(shmData->respiration.fallState ) );
 	cout << "\n},\n";
 	
 	cout << " \"cpr\" : {\n";
@@ -120,6 +124,12 @@ sendStatus(void )
 	makejson(cout, "y", itoa(shmData->cpr.y ) );
 	cout << ",\n";
 	makejson(cout, "z", itoa(shmData->cpr.z ) );
+	cout << "\n},\n";
+	
+	cout << " \"general\" : {\n";
+	makejson(cout, "simMgrIPAddr", shmData->simMgrIPAddr );
+	cout << "\n}\n";
+	
 	cout << "\n}\n";
 }
 
