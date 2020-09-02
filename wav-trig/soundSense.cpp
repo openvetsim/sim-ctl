@@ -679,7 +679,7 @@ main(int argc, char *argv[] )
 	int sts;
 	struct sigaction new_action;
 	int changed;
-	
+
 	if ( argc < 2 )
 	{
 		cout << "Usage:\n";
@@ -1505,6 +1505,10 @@ lungRise(int control )
 	1 - Play Sound
 	
 */
+
+	
+time_t fallStopTime = 0;
+	
 #define FLIP_LUNG	1
 void 
 runLung( void )
@@ -1514,6 +1518,7 @@ runLung( void )
 	double periodSeconds;
 	double fractional;
 	double integer;
+	time_t now;
 	
 	if ( ! shmData->respiration.chest_movement )
 	{
@@ -1541,6 +1546,15 @@ runLung( void )
 		switch ( lungState )
 		{
 			case 0:
+				if ( fallStopTime )
+				{
+					now = time(NULL );
+					if ( now >= fallStopTime )
+					{
+						lungFall(TURN_OFF );
+						fallStopTime = 0;
+					}
+				}
 				if ( lungLast != current.breathCount )
 				{
 					lungLast = current.breathCount;
@@ -1663,6 +1677,8 @@ runLung( void )
 					lungState = 0;
 					lungPlaying = 0;
 				}
+				now = time(NULL );
+				fallStopTime = now + 10;
 				break;
 #if 0
 			case 2: // No longer used
