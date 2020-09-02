@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 	{
 		while ( 1 )
 		{
-			sleep(1 );
+			usleep(250000 );
 			printf("AIN %d, Base %d, Manual %d\n",
 				shmData->manual_breath_ain,
 				shmData->manual_breath_baseline,
@@ -152,6 +152,10 @@ int main(int argc, char *argv[])
 						shmData->respiration.active = 1;
 						senseCount = 0;
 					}
+				}
+				else if ( senseCount )
+				{
+					senseCount -= 1;
 				}
 				break;
 			case 1:
