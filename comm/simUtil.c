@@ -71,7 +71,7 @@ void daemonize(void )
 {
     pid_t pid;
 	int i,lfp;
-	char str[10];
+	char str[16];
 	char buffer[128];
 	
 	if ( getppid()==1 )
@@ -111,7 +111,7 @@ void daemonize(void )
 	chdir(RUNNING_DIR); /* change running directory */
 	
 	// Create a Lock File to prevent multiple daemons
-	sprintf(buffer, "%s%s.pid", LOCK_FILE_DIR, program_invocation_short_name );
+	snprintf(buffer, 128, "%s%s.pid", LOCK_FILE_DIR, program_invocation_short_name );
 	lfp = open(buffer, O_RDWR|O_CREAT, 0640 );
 	if ( lfp < 0 )
 	{
@@ -127,7 +127,7 @@ void daemonize(void )
 	*/
 	
 	/* first instance continues */
-	sprintf(str, "%d\n", getpid());
+	snprintf(str, 16, "%d\n", getpid());
 	write(lfp, str, strlen(str)); /* record pid to lockfile */
 	signal(SIGCHLD,SIG_IGN); /* ignore child */
 	signal(SIGTSTP,SIG_IGN); /* ignore tty signals */
@@ -136,7 +136,7 @@ void daemonize(void )
 	signal(SIGHUP,signal_handler); /* catch hangup signal */
 	signal(SIGTERM,signal_handler); /* catch kill signal */
 	
-	sprintf(buffer, "%s started", program_invocation_short_name );
+	snprintf(buffer, 128, "%s started", program_invocation_short_name );
 	syslog (LOG_DAEMON | LOG_NOTICE, buffer );
 }
 
@@ -328,7 +328,7 @@ int findAINPath(void )
 	
 	while ( fgets(ain_path, PATH_MAX, fp) != NULL)
 	{
-		sprintf(ain_path, "%s", dirname(ain_path ) );	// Return the directory
+		snprintf(ain_path, PATH_MAX, "%s", dirname(ain_path ) );	// Return the directory
 		if ( debug > 1 )
 		{
 			printf("%s\n", ain_path);
@@ -350,7 +350,7 @@ int findAINPath(void )
 		sts = stat("/sys/bus/iio/devices/iio:device0/in_voltage0_raw", &sb );
 		if ( sts == 0 )
 		{
-			sprintf(ain_path, "%s", "/sys/bus/iio/devices/iio:device0" );	// Return the directory
+			snprintf(ain_path, PATH_MAX, "%s", "/sys/bus/iio/devices/iio:device0" );	// Return the directory
 			if ( debug > 1 )
 			{
 				printf("%s\n", ain_path);
@@ -373,12 +373,13 @@ int findAINPath(void )
 	return ( 0 );
 }
 	
+#define NAME_LEN (PATH_MAX+32)
 int
 read_ain(int chan )
 {
 	int fd;
 	int val = 0;
-	char name[256];
+	char name[NAME_LEN];
 	int sts;
 	char buf[8];
 	
@@ -390,11 +391,11 @@ read_ain(int chan )
 	{
 		if ( ain_new_names )
 		{
-			sprintf(name, "%s/in_voltage%d_raw", ain_path, chan );
+			snprintf(name, NAME_LEN, "%s/in_voltage%d_raw", ain_path, chan );
 		}
 		else
 		{
-			sprintf(name, "%s/AIN%d", ain_path, chan);
+			snprintf(name, NAME_LEN, "%s/AIN%d", ain_path, chan);
 		}
 		fd = open (name, O_RDONLY );
 		if ( fd < 0 )
@@ -510,7 +511,7 @@ gpioPinOpen(int pin, int direction )
 	int sts;
 	
 	printf("gpioPinOpen(%d, %d)\n", pin, direction );
-	sprintf(name, "/sys/class/gpio/gpio%d", pin );
+	snprintf(name, 512, "/sys/class/gpio/gpio%d", pin );
 	sts = stat(name, &sb );
 	if ( sts == 0 )
 	{
@@ -525,7 +526,7 @@ gpioPinOpen(int pin, int direction )
 		fclose(io);
 	}
 	
-	sprintf(name, "/sys/class/gpio/gpio%d/direction", pin );
+	snprintf(name, 512, "/sys/class/gpio/gpio%d/direction", pin );
 	iodir = fopen(name, "w");
     fseek(iodir ,0, SEEK_SET);
 	if ( direction == GPIO_OUTPUT )
@@ -539,7 +540,7 @@ gpioPinOpen(int pin, int direction )
     fflush(iodir);
 	fclose(iodir);
 	
-	sprintf(name, "/sys/class/gpio/gpio%d/value", pin );
+	snprintf(name, 512, "/sys/class/gpio/gpio%d/value", pin );
 	if ( direction == GPIO_OUTPUT )
 	{
 		ioval = fopen(name, "w");

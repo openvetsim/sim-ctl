@@ -461,6 +461,7 @@ int wavTrigger::getReturnData(char *buf, int maxLen) {
 			}
 		}
 	}
+	return ( -1 );
 }			
 
 #define MAX_BUF 255

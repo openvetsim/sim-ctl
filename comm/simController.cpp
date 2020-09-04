@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 	sts = initSHM(SHM_CREATE );
 	if ( sts )
 	{
-		sprintf(msgbuf, "SHM Failed (%d) - Exiting", sts );
+		snprintf(msgbuf, BUF_LEN_MAX, "SHM Failed (%d) - Exiting", sts );
 		log_message("", msgbuf );
 		exit ( -1 );
 	}
@@ -344,7 +344,7 @@ simMgrSyncTime(void)
 {
 	FILE *pipe1;
 	FILE *pipe2;
-	char buff[128];
+	char buff[1024];
 	char dbuff[64];
 	int i;
 	int sts;
@@ -379,11 +379,11 @@ simMgrSyncTime(void)
 			
 			if ( sts == 2 )
 			{
-				sprintf(buff, "date %s", value );
+				snprintf(buff, 1024, "date %s", value );
 				pipe2 = popen(buff, "r" );
 				if ( !pipe2 )
 				{
-					sprintf(buff, "set Date fails: %s", strerror(errno ) );
+					snprintf(buff, 1024, "set Date fails: %s", strerror(errno ) );
 					syslog (LOG_DAEMON | LOG_NOTICE, buff );
 				}
 				else
