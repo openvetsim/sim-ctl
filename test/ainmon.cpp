@@ -51,7 +51,7 @@ int findAINPath(void )
 	
 	while ( fgets(ain_path, PATH_MAX, fp) != NULL)
 	{
-		sprintf(ain_path, "%s", dirname(ain_path ) );	// Return the directory
+		snprintf(ain_path, PATH_MAX, "%s", dirname(ain_path ) );	// Return the directory
 		if ( debug > 1 )
 		{
 			printf("%s\n", ain_path);
@@ -76,7 +76,7 @@ read_ain(int chan )
 {
 	int fd;
 	int val = 0;
-	char name[256];
+	char name[1024];
 	int sts;
 	char buf[8];
 	
@@ -86,7 +86,7 @@ read_ain(int chan )
 	}
 	if ( ain_path_found == 1 )
 	{
-		sprintf(name, "%s/AIN%d", ain_path, chan);
+		snprintf(name, 1024, "%s/AIN%d", ain_path, chan);
 		fd = open (name, O_RDONLY );
 		if ( fd < 0 )
 		{

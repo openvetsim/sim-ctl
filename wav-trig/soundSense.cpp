@@ -253,7 +253,7 @@ addSoundToList(int type, int index, const char *name, int low_limit, int high_li
 	int sts;
 	if ( soundIndex >= maxSounds )
 	{
-		sprintf(msgbuf, "Too many tracks in sound list" );
+		snprintf(msgbuf, 1024, "Too many tracks in sound list" );
 		log_message("", msgbuf );
 		sts = -1;
 	}
@@ -269,19 +269,19 @@ addSoundToList(int type, int index, const char *name, int low_limit, int high_li
 	}
 	else
 	{
-		sprintf(msgbuf, "bad entry in sound list" );
+		snprintf(msgbuf, 1024, "bad entry in sound list" );
 		log_message("", msgbuf );
 		sts = -1;
 	}
 	return ( sts );
 }
-
+#define LINE_MAX_LEN	512
 int
 initSoundList(void )
 {
 	FILE *file;
 	int lines;
-	char line[1024];
+	char line[LINE_MAX_LEN];
 	char *in;
 	char *out;
 	char clean[1060];
@@ -300,13 +300,13 @@ initSoundList(void )
 		}
 		else
 		{
-			sprintf(msgbuf, "Failed to open /simulator/soundList.csv %s", strerror(errno) );
+			snprintf(msgbuf, 1024, "Failed to open /simulator/soundList.csv %s", strerror(errno) );
 			log_message("", msgbuf);
 		}
 		exit ( -2 );
 	}
 	
-	for ( lines = 0 ; fgets(line, 1024, file ) ; lines++ )
+	for ( lines = 0 ; fgets(line, LINE_MAX_LEN, file ) ; lines++ )
 	{
 	}
 	printf("Found %d lines in file\n", lines );
@@ -314,7 +314,7 @@ initSoundList(void )
 	soundList = (struct sound *)calloc(maxSounds, sizeof(struct sound) );
 	
 	fseek(file, 0, SEEK_SET );
-	for ( lines = 0 ; fgets(line, 1024, file ) ; lines++ )
+	for ( lines = 0 ; fgets(line, LINE_MAX_LEN, file ) ; lines++ )
 	{
 		in = (char *)line;
 		out = (char *)clean;
@@ -349,7 +349,7 @@ initSoundList(void )
 		}
 		else
 		{
-			sprintf(msgbuf, "sscanf returns %d for line: \"%s\"\n", sts, line );
+			snprintf(msgbuf, 1024, "sscanf returns %d for line: \"%s\"\n", sts, line );
 			log_message("", msgbuf);
 		}
 	}
@@ -493,7 +493,7 @@ getFiles(void )
 
 	if ( new_lubdub == -1 )
 	{
-		sprintf(msgbuf, "No lubdub file for %s %d", current.heart_sound, shmData->cardiac.rate );
+		snprintf(msgbuf, 1024, "No lubdub file for %s %d", current.heart_sound, shmData->cardiac.rate );
 		log_message("", msgbuf);
 	}
 	else
@@ -502,7 +502,7 @@ getFiles(void )
 	}
 	if ( new_inhL == -1 )
 	{
-		sprintf(msgbuf, "No inhL file for %s %d", current.left_lung_sound, shmData->respiration.rate );
+		snprintf(msgbuf, 1024, "No inhL file for %s %d", current.left_lung_sound, shmData->respiration.rate );
 		log_message("", msgbuf);
 	}
 	else
@@ -511,14 +511,14 @@ getFiles(void )
 	}
 	if ( new_inhR == -1 )
 	{
-		sprintf(msgbuf, "No inhR file for %s %d", current.right_lung_sound, shmData->respiration.rate );
+		snprintf(msgbuf, 1024, "No inhR file for %s %d", current.right_lung_sound, shmData->respiration.rate );
 		log_message("", msgbuf);
 	}
 	else
 	{
 		inhR = new_inhR;
 	}
-	sprintf(msgbuf, "Get Files %s : %d, %s : %d, %s : %d", 
+	snprintf(msgbuf, 1024, "Get Files %s : %d, %s : %d, %s : %d", 
 		current.heart_sound, lubdub, current.left_lung_sound, inhL, current.right_lung_sound, inhR );
 	log_message("", msgbuf);
 }
@@ -540,9 +540,9 @@ int tankVolume;
 
 void doReport(void )
 {
-	//sprintf(msgbuf, "Counts: %d, %d, Tank %d Rise %d Heart State %d, Heart Gain %d Lung State %d Lung Gain R-%d L-%d Master Gain %d  heart %d inh R-%d L-%d", 
+	//snprintf(msgbuf, 1024, "Counts: %d, %d, Tank %d Rise %d Heart State %d, Heart Gain %d Lung State %d Lung Gain R-%d L-%d Master Gain %d  heart %d inh R-%d L-%d", 
 	//			current.heartCount, current.breathCount, tankVolume, riseTime, heartState, current.heartGain, 
-	sprintf(msgbuf, "Counts: %d, %d, Tank %d Heart State %d, Heart Gain %d Lung State %d Lung Gain R-%d L-%d Master Gain %d  heart %d inh R-%d L-%d", 
+	snprintf(msgbuf, 1024, "Counts: %d, %d, Tank %d Heart State %d, Heart Gain %d Lung State %d Lung Gain R-%d L-%d Master Gain %d  heart %d inh R-%d L-%d", 
 				current.heartCount, current.breathCount, 
 				tankVolume, 
 				heartState, current.heartGain, 
@@ -679,7 +679,7 @@ main(int argc, char *argv[] )
 	int sts;
 	struct sigaction new_action;
 	int changed;
-	
+
 	if ( argc < 2 )
 	{
 		cout << "Usage:\n";
@@ -709,7 +709,7 @@ main(int argc, char *argv[] )
 	{
 		if ( optind < argc )
 		{
-			sprintf(sioName, "/dev/%s", argv[optind] );
+			snprintf(sioName, MAX_BUF, "/dev/%s", argv[optind] );
 		}
 		else
 		{
@@ -821,7 +821,7 @@ main(int argc, char *argv[] )
 	allAirOff(0); // Make sure pump is off before doing other init operations
 	if ( sfd < 0 )
 	{
-		sprintf(msgbuf, "No SIO Port. Running Silent" );
+		snprintf(msgbuf, 1024, "No SIO Port. Running Silent" );
 		log_message("", msgbuf);
 	}
 	else
@@ -866,7 +866,7 @@ main(int argc, char *argv[] )
 		}
 		else
 		{
-			sprintf(msgbuf, "WAV Trigger Version: Len %d String %.*s", val, val-1, &buffer[1] );
+			snprintf(msgbuf, 1024, "WAV Trigger Version: Len %d String %.*s", val, val-1, &buffer[1] );
 			log_message("", msgbuf);
 		}
 		val = wav.getSysInfo(buffer, MAX_BUF );
@@ -876,7 +876,7 @@ main(int argc, char *argv[] )
 		}
 		else
 		{
-			sprintf(msgbuf, "Sys Info: Len %d Voices %d Tracks %d", val, buffer[1], buffer[2] );
+			snprintf(msgbuf, 1024, "Sys Info: Len %d Voices %d Tracks %d", val, buffer[1], buffer[2] );
 			log_message("", msgbuf);
 		}
 		if ( wav.boardType == BOARD_TSUNAMI && wav.tsunamiMode != TSUNAMI_MONO )
@@ -887,7 +887,7 @@ main(int argc, char *argv[] )
 			}
 			else
 			{
-				sprintf(msgbuf, "Tsunami is running Stereo Mode. Must be Mono");
+				snprintf(msgbuf, 1024, "Tsunami is running Stereo Mode. Must be Mono");
 				log_message("", msgbuf);
 			}
 		}
@@ -983,7 +983,7 @@ main(int argc, char *argv[] )
 
 	if ( debug )
 	{
-		sprintf(msgbuf, "Running" );
+		snprintf(msgbuf, 1024, "Running" );
 		if ( debug > 1 )
 		{
 			printf("%s\n", msgbuf );
@@ -1027,7 +1027,7 @@ main(int argc, char *argv[] )
 			{
 				printf("Master Off\n" );
 			}
-			sprintf(msgbuf, "Set Off: %d, %d, Heart Gain %d, Lung Gains %d / %d, Master Gain %d", 
+			snprintf(msgbuf, 1024, "Set Off: %d, %d, Heart Gain %d, Lung Gains %d / %d, Master Gain %d", 
 				current.heartCount, current.breathCount, current.heartGain, current.rightLungGain, current.leftLungGain, current.masterGain );
 			log_message("", msgbuf);
 		}
@@ -1039,7 +1039,7 @@ main(int argc, char *argv[] )
 			{
 				printf("Master On\n" );
 			}
-			sprintf(msgbuf, "Set On: %d, %d, Heart Gain %d, Lung Gains %d / %d (%d), Master Gain %d", 
+			snprintf(msgbuf, 1024, "Set On: %d, %d, Heart Gain %d, Lung Gains %d / %d (%d), Master Gain %d", 
 				current.heartCount, current.breathCount, current.heartGain, current.rightLungGain, current.leftLungGain, shmData->respiration.left_lung_sound_volume, current.masterGain );
 			log_message("", msgbuf);
 		}
@@ -1052,7 +1052,7 @@ main(int argc, char *argv[] )
 		if ( ( current.heart_rate != shmData->cardiac.rate ) || 
 			 ( strcmp(current.heart_sound, shmData->cardiac.heart_sound) != 0 ) )
 		{
-			sprintf(msgbuf, "Cardiac %d:%d, %s, %s", 
+			snprintf(msgbuf, 1024, "Cardiac %d:%d, %s, %s", 
 				 current.heart_rate, shmData->cardiac.rate,
 				 current.heart_sound, shmData->cardiac.heart_sound	 );
 			log_message("", msgbuf);		
@@ -1064,7 +1064,7 @@ main(int argc, char *argv[] )
 			 ( strcmp(current.left_lung_sound, shmData->respiration.left_lung_sound) != 0 ) ||
 			 ( strcmp(current.right_lung_sound, shmData->respiration.right_lung_sound) != 0 ) )
 		{
-			sprintf(msgbuf, "Resp %d:%d, %s, %s, %s, %s", 
+			snprintf(msgbuf, 1024, "Resp %d:%d, %s, %s, %s, %s", 
 				 current.respiration_rate, shmData->respiration.rate,
 				 current.left_lung_sound, shmData->respiration.left_lung_sound,
 				 current.right_lung_sound, shmData->respiration.right_lung_sound );
@@ -1241,7 +1241,7 @@ runHeart ( void )
 					if (timer_settime(heart_timer, 0, &its, NULL) == -1)
 					{
 						perror("runHeart: timer_settime");
-						//sprintf(msgbuf, "runHeart: timer_settime: %s", strerror(errno) );
+						//snprintf(msgbuf, 1024, "runHeart: timer_settime: %s", strerror(errno) );
 						//log_message("", msgbuf );
 						gpioPinSet(tankPin, TURN_OFF );
 						exit ( -1 );
@@ -1256,7 +1256,7 @@ runHeart ( void )
 				//{
 //					gpioPinSet(pulsePin, TURN_OFF )
 					wav.trackPlayPoly(0, lubdub);
-					//sprintf(msgbuf, "runHeart: lub (%d) Gain is %d", lub, heartGain );
+					//snprintf(msgbuf, 1024, "runHeart: lub (%d) Gain is %d", lub, heartGain );
 					//log_message("", msgbuf );
 					heartState = 0;
 					heartPlaying = 1;
@@ -1338,7 +1338,7 @@ initialize_timers(void )
 	if (sigaction(HEART_TIMER_SIG, &new_action, NULL) == -1)
 	{
 		perror("sigaction");
-		sprintf(msgbuf, "sigaction() fails for Pulse Timer: %s", strerror(errno) );
+		snprintf(msgbuf, 1024, "sigaction() fails for Pulse Timer: %s", strerror(errno) );
 		log_message("", msgbuf );
 		tankOnOff(TURN_OFF );
 		exit ( -1 );
@@ -1349,7 +1349,7 @@ initialize_timers(void )
 	if (sigprocmask(SIG_SETMASK, &mask, NULL) == -1)
 	{
 		perror("sigprocmask");
-		sprintf(msgbuf, "sigprocmask() fails for Pulse Timer %s", strerror(errno) );
+		snprintf(msgbuf, 1024, "sigprocmask() fails for Pulse Timer %s", strerror(errno) );
 		log_message("", msgbuf );
 		tankOnOff(TURN_OFF );
 		exit ( -1 );
@@ -1362,7 +1362,7 @@ initialize_timers(void )
 	if ( timer_create(CLOCK_MONOTONIC, &heart_sev, &heart_timer ) == -1 )
 	{
 		perror("timer_create" );
-		sprintf(msgbuf, "timer_create() fails for Pulse Timer %s", strerror(errno) );
+		snprintf(msgbuf, 1024, "timer_create() fails for Pulse Timer %s", strerror(errno) );
 		log_message("", msgbuf );
 		tankOnOff(TURN_OFF );
 		exit (-1);
@@ -1370,7 +1370,7 @@ initialize_timers(void )
     if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
     {
 		perror("sigprocmask");
-		sprintf(msgbuf, "sigprocmask() fails for Pulse Timer%s ", strerror(errno) );
+		snprintf(msgbuf, 1024, "sigprocmask() fails for Pulse Timer%s ", strerror(errno) );
 		log_message("", msgbuf );
 		tankOnOff(TURN_OFF );
 		exit ( -1 );
@@ -1383,7 +1383,7 @@ initialize_timers(void )
 	if (sigaction(BREATH_TIMER_SIG, &new_action, NULL) == -1)
 	{
 		perror("sigaction");
-		sprintf(msgbuf, "sigaction() fails for Breath Timer %s", strerror(errno) );
+		snprintf(msgbuf, 1024, "sigaction() fails for Breath Timer %s", strerror(errno) );
 		log_message("", msgbuf );
 		tankOnOff(TURN_OFF );
 		exit(-1 );
@@ -1394,7 +1394,7 @@ initialize_timers(void )
 	if (sigprocmask(SIG_SETMASK, &mask, NULL) == -1)
 	{
 		perror("sigprocmask");
-		sprintf(msgbuf, "sigprocmask() fails for Breath Timer %s", strerror(errno) );
+		snprintf(msgbuf, 1024, "sigprocmask() fails for Breath Timer %s", strerror(errno) );
 		log_message("", msgbuf );
 		tankOnOff(TURN_OFF );
 		exit ( -1 );
@@ -1407,7 +1407,7 @@ initialize_timers(void )
 	if ( timer_create(CLOCK_MONOTONIC, &breath_sev, &breath_timer ) == -1 )
 	{
 		perror("timer_create" );
-		sprintf(msgbuf, "timer_create() fails for Breath Timer %s", strerror(errno) );
+		snprintf(msgbuf, 1024, "timer_create() fails for Breath Timer %s", strerror(errno) );
 		log_message("", msgbuf );
 		tankOnOff(TURN_OFF );
 		exit (-1);
@@ -1416,7 +1416,7 @@ initialize_timers(void )
     if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
     {
 		perror("sigprocmask");
-		sprintf(msgbuf, "sigprocmask() fails for Breath Timer %s", strerror(errno) );
+		snprintf(msgbuf, 1024, "sigprocmask() fails for Breath Timer %s", strerror(errno) );
 		log_message("", msgbuf );
 		tankOnOff(TURN_OFF );
 		exit ( -1 );
@@ -1429,7 +1429,7 @@ initialize_timers(void )
 	if (sigaction(RISE_TIMER_SIG, &new_action, NULL) == -1)
 	{
 		perror("sigaction");
-		sprintf(msgbuf, "sigaction() fails for Rise Timer %s", strerror(errno) );
+		snprintf(msgbuf, 1024, "sigaction() fails for Rise Timer %s", strerror(errno) );
 		log_message("", msgbuf );
 		tankOnOff(TURN_OFF );
 		exit(-1 );
@@ -1440,7 +1440,7 @@ initialize_timers(void )
 	if (sigprocmask(SIG_SETMASK, &mask, NULL) == -1)
 	{
 		perror("sigprocmask");
-		sprintf(msgbuf, "sigprocmask() fails for Rise Timer %s", strerror(errno) );
+		snprintf(msgbuf, 1024, "sigprocmask() fails for Rise Timer %s", strerror(errno) );
 		log_message("", msgbuf );
 		tankOnOff(TURN_OFF );
 		exit ( -1 );
@@ -1453,7 +1453,7 @@ initialize_timers(void )
 	if ( timer_create(CLOCK_MONOTONIC, &rise_sev, &rise_timer ) == -1 )
 	{
 		perror("timer_create" );
-		sprintf(msgbuf, "timer_create() fails for Rise Timer %s", strerror(errno) );
+		snprintf(msgbuf, 1024, "timer_create() fails for Rise Timer %s", strerror(errno) );
 		log_message("", msgbuf );
 		tankOnOff(TURN_OFF );
 		exit (-1);
@@ -1462,7 +1462,7 @@ initialize_timers(void )
     if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
     {
 		perror("sigprocmask");
-		sprintf(msgbuf, "sigprocmask() fails for Rise Timer %s", strerror(errno) );
+		snprintf(msgbuf, 1024, "sigprocmask() fails for Rise Timer %s", strerror(errno) );
 		log_message("", msgbuf );
 		tankOnOff(TURN_OFF );
 		exit ( -1 );
@@ -1505,6 +1505,10 @@ lungRise(int control )
 	1 - Play Sound
 	
 */
+
+	
+time_t fallStopTime = 0;
+	
 #define FLIP_LUNG	1
 void 
 runLung( void )
@@ -1514,6 +1518,7 @@ runLung( void )
 	double periodSeconds;
 	double fractional;
 	double integer;
+	time_t now;
 	
 	if ( ! shmData->respiration.chest_movement )
 	{
@@ -1541,6 +1546,15 @@ runLung( void )
 		switch ( lungState )
 		{
 			case 0:
+				if ( fallStopTime )
+				{
+					now = time(NULL );
+					if ( now >= fallStopTime )
+					{
+						lungFall(TURN_OFF );
+						fallStopTime = 0;
+					}
+				}
 				if ( lungLast != current.breathCount )
 				{
 					lungLast = current.breathCount;
@@ -1556,7 +1570,7 @@ runLung( void )
 					if (timer_settime(breath_timer, 0, &its, NULL) == -1)
 					{
 						perror("runLung: timer_settime");
-						sprintf(msgbuf, "runLung: timer_settime: %s", strerror(errno) );
+						snprintf(msgbuf, 1024, "runLung: timer_settime: %s", strerror(errno) );
 						log_message("", msgbuf );
 						tankOnOff(TURN_OFF );
 						exit ( -1 );
@@ -1589,7 +1603,7 @@ runLung( void )
 					periodSeconds *= INH_PERCENT;
 					if ( periodSeconds < 0 )
 					{
-						sprintf(msgbuf, "runLung: rise periodSeconds is negative period %f rate %d", periodSeconds, shmData->respiration.rate );
+						snprintf(msgbuf, 1024, "runLung: rise periodSeconds is negative period %f rate %d", periodSeconds, shmData->respiration.rate );
 						periodSeconds = 1;
 						log_message("", msgbuf );
 					}
@@ -1599,7 +1613,7 @@ runLung( void )
 
 					if ( delayTime < 0 )
 					{
-						sprintf(msgbuf, "runLung: rise delayTime is negative for period %f rate %d", periodSeconds, shmData->respiration.rate );
+						snprintf(msgbuf, 1024, "runLung: rise delayTime is negative for period %f rate %d", periodSeconds, shmData->respiration.rate );
 						delayTime = 0;
 						log_message("", msgbuf );
 					}
@@ -1610,7 +1624,7 @@ runLung( void )
 
 					if ( riseTime < 0 )
 					{
-						sprintf(msgbuf, "runLung: rise riseTime is negative for period %f rate %d", periodSeconds, shmData->respiration.rate );
+						snprintf(msgbuf, 1024, "runLung: rise riseTime is negative for period %f rate %d", periodSeconds, shmData->respiration.rate );
 						riseTime = 0;
 						log_message("", msgbuf );
 					}
@@ -1618,9 +1632,9 @@ runLung( void )
 					if (timer_settime(rise_timer, 0, &its, NULL) == -1)
 					{
 						//perror("runLung: rise timer_settime");
-						sprintf(msgbuf, "runLung: rise timer_settime: %s", strerror(errno) );
+						snprintf(msgbuf, 1024, "runLung: rise timer_settime: %s", strerror(errno) );
 						log_message("", msgbuf );
-						sprintf(msgbuf, "runLung: periodSeconds %f, (%ld : %ld)", periodSeconds, its.it_value.tv_sec, its.it_value.tv_nsec );
+						snprintf(msgbuf, 1024, "runLung: periodSeconds %f, (%ld : %ld)", periodSeconds, its.it_value.tv_sec, its.it_value.tv_nsec );
 						log_message("", msgbuf );
 						tankOnOff(TURN_OFF );
 						exit ( -1 );
@@ -1634,7 +1648,7 @@ runLung( void )
 						lungFall(TURN_OFF );
 						fallOnOff = 0;
 						lungRise(TURN_OFF );
-						sprintf(msgbuf, "runLung: exhLimit Hit" );
+						snprintf(msgbuf, 1024, "runLung: exhLimit Hit" );
 						log_message("", msgbuf );
 					}
 				}
@@ -1663,6 +1677,8 @@ runLung( void )
 					lungState = 0;
 					lungPlaying = 0;
 				}
+				now = time(NULL );
+				fallStopTime = now + 10;
 				break;
 #if 0
 			case 2: // No longer used
@@ -1861,7 +1877,7 @@ void doPulse(void )
 		
 		if ( debug )
 		{
-			sprintf(msgbuf, "Pulse: Channel %d Strength %d Volume %d", 
+			snprintf(msgbuf, 1024, "Pulse: Channel %d Strength %d Volume %d", 
 				pulseChannel,
 				pulseStrength,
 				pulseVolume );
