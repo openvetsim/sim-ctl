@@ -285,7 +285,6 @@ initSoundList(void )
 	char *in;
 	char *out;
 	char clean[1060];
-	
 	struct sound sd;
 	char typeName[SOUND_TYPE_LENGTH];
 	int sts;
@@ -898,6 +897,7 @@ main(int argc, char *argv[] )
 	//wav.masterGain(0);
 	wav.channelGain(0, 0 );
 	current.masterGain = 0;
+	
 	for ( i = 0 ; i < 8 ; i++ )
 	{
 		wav.channelGain(i,0 );
@@ -1140,7 +1140,7 @@ setHeartVolume(int force )
 			}
 			else
 			{
-				current.heartGain = volumeToGain(current.heart_sound_volume, current.heartStrength );
+				current.heartGain = volumeToGain(current.heart_sound_volume + shmData->auscultation.heartTrim, current.heartStrength );
 			}
 		}
 	}
@@ -1168,7 +1168,7 @@ setLeftLungVolume(int force )
 		//}
 		//else
 		{
-			current.leftLungGain = volumeToGain(current.left_lung_sound_volume, current.leftLungStrength );
+			current.leftLungGain = volumeToGain(current.left_lung_sound_volume + shmData->auscultation.lungTrim, current.leftLungStrength );
 		}
 	}
 	
@@ -1199,7 +1199,7 @@ setRightLungVolume(int force )
 		//}
 		//else
 		{
-			current.rightLungGain = volumeToGain(current.right_lung_sound_volume, current.rightLungStrength );
+			current.rightLungGain = volumeToGain(current.right_lung_sound_volume + shmData->auscultation.lungTrim, current.rightLungStrength );
 		}
 	}
 	if ( force || ( gain != current.rightLungGain ) )

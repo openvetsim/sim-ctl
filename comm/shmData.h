@@ -101,6 +101,8 @@ struct auscultation
 	int leftLungStrength;
 	int rightLungStrength;
 	char tag[STR_SIZE];
+	int heartTrim;
+	int lungTrim;
 };
 
 #define PULSE_NOT_ACTIVE					0

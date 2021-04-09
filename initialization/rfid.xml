@@ -1,4 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
+<rfidTrim>
+	<heartTrim>0</heartTrim>
+	<lungTrim>0</lungTrim>
+</rfidTrim>
 <rfidTags>
 	  <tag>
 		<description>TestTag1</description>
