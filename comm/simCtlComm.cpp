@@ -88,25 +88,29 @@ simCtlComm::simCtlComm()
 	if ( fd != NULL )
 	{
 		memset(name, 0, SIM_NAME_SIZE );
-		ptr = fgets(name, SIM_NAME_SIZE, fd );
-		if ( ptr != NULL )
+		while ( ( ptr = fgets(name, SIM_NAME_SIZE, fd ) ) != NULL )
 		{
-			ptr = strchr(name, ':' );
-			if ( ptr )
+			// Strip any leading spaces
+			cleanString(ptr );
+			if ( strlen(ptr) > 4 && *ptr != '#' )	// Skip comments
 			{
-				// Has name and port
-				*ptr = 0;
-				if ( strlen(name) > 0 )
+				ptr = strchr(name, ':' );
+				if ( ptr )
 				{
-					sprintf(simMgrName, "%s", name );
+					// Has name and port
+					*ptr = 0;
+					if ( strlen(name) > 0 )
+					{
+						sprintf(simMgrName, "%s", name );
+					}
+					ptr += 1;
+					commPort = atoi(ptr );
 				}
-				ptr += 1;
-				commPort = atoi(ptr );
-			}
-			else
-			{
-				strncpy(simMgrName, name, SIM_NAME_SIZE-2 );
-				simMgrName[strcspn(simMgrName, "\n\r")] = 0;
+				else
+				{
+					strncpy(simMgrName, name, SIM_NAME_SIZE-2 );
+					simMgrName[strcspn(simMgrName, "\n\r")] = 0;
+				}
 			}
 		}
 		fclose(fd );
