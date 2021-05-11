@@ -1,7 +1,7 @@
 #
 # This file is part of the sim-ctl distribution (https://github.com/OpenVetSimDevelopers/sim-ctl).
 # 
-# Copyright (c) 2019 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
+# Copyright (c) 2019-2021 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
 # 
 # This program is free software: you can redistribute it and/or modify  
 # it under the terms of the GNU General Public License as published by  
@@ -21,12 +21,12 @@
 
 # pulse
 SUBDIRS =  comm cardiac cpr  respiration pulse wav-trig initialization test www
-
+MAKEFLAGS = --no-print-directory
 default:
 #	@test -s ../BeagleBoneBlack-GPIO || { echo "Did not find BeagleBoneBlack-GPIO! Exiting..."; exit 1; }
 
 	@for dir in $(SUBDIRS); do \
-		$(MAKE) -s -C $$dir ; \
+		$(MAKE) $(MAKEFLAGS) -C $$dir ; \
 		done
 	
 build:
@@ -34,7 +34,7 @@ build:
 
 all clean install :
 	@for dir in $(SUBDIRS); do \
-		$(MAKE) -s -C $$dir  $@; \
+		$(MAKE) $(MAKEFLAGS) -C $$dir  $@; \
 		done
 	
 .PHONY: build $(SUBDIRS)

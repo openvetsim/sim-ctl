@@ -43,7 +43,7 @@ install: all /etc/init.d/simctl
 		cp simmgrName /simulator; \
 	fi
 	
-	# killall is required for shutting down the simctl service.
+# killall is required for shutting down the simctl service.
 ifndef KA
 	@echo "Installing killall - This can take a while" ;
 	@sudo apt update ;
