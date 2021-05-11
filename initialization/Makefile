@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License 
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
+KA := $(shell command -v killall 2> /dev/null)
 
 default: all
 
@@ -37,6 +38,18 @@ install: all /etc/init.d/simctl
 	if [ ! -f /simulator/soundList.csv ]; then \
 		cp soundList.csv /simulator; \
 	fi
+	
+	if [ ! -f /simulator/simmgrName ]; then \
+		cp simmgrName /simulator; \
+	fi
+	
+	# killall is required for shutting down the simctl service.
+ifndef KA
+	@echo "Installing killall - This can take a while" ;
+	@sudo apt update ;
+	@sudo apt install psmisc ;
+else
+endif
 
 clean:
  

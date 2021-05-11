@@ -26,7 +26,7 @@ default:
 #	@test -s ../BeagleBoneBlack-GPIO || { echo "Did not find BeagleBoneBlack-GPIO! Exiting..."; exit 1; }
 
 	@for dir in $(SUBDIRS); do \
-		$(MAKE) -C $$dir ; \
+		$(MAKE) -s -C $$dir ; \
 		done
 	
 build:
@@ -34,7 +34,7 @@ build:
 
 all clean install :
 	@for dir in $(SUBDIRS); do \
-		$(MAKE) -C $$dir  $@; \
+		$(MAKE) -s -C $$dir  $@; \
 		done
 	
 .PHONY: build $(SUBDIRS)
