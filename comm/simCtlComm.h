@@ -40,7 +40,7 @@ private:
 	int trySimMgrOpen(char *name );
 	
 public:
-	simCtlComm(int port);
+	simCtlComm();
 	
 	// Support for Sync Port
 	int openListen(int active );	// If Active is set, the port stays open. Otherwise, this is simply used to discover the simmgr

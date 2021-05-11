@@ -62,28 +62,57 @@ extern char msgbuf[];
 /* Constructor:
  * 		
  */
-simCtlComm::simCtlComm(int port )
+simCtlComm::simCtlComm()
 {
 	char name[SIM_NAME_SIZE];
 	FILE *fd;
 	char *ptr;
 	
 	commFD = -1;
-	commPort = port;
+	commPort = SYNC_PORT;
 	simMgrName[0] = 0;
 	simMgrIPAddr[0] = 0;
+	
+	// Allowed formats for simmgrName file:
+	// Hostname or IP address
+	//		192.168.1.22
+	//      simmgr
+	// Hostname or ip with port
+	//		192.168.1.22:50200
+	//		winvetsim:40844
+	// Port only
+	//		:50200
+	//		:40844
 	
 	fd = fopen("/simulator/simmgrName", "r" );
 	if ( fd != NULL )
 	{
+		memset(name, 0, SIM_NAME_SIZE );
 		ptr = fgets(name, SIM_NAME_SIZE, fd );
 		if ( ptr != NULL )
 		{
-			strncpy(simMgrName, name, SIM_NAME_SIZE-2 );
-			simMgrName[strcspn(simMgrName, "\n\r")] = 0;
+			ptr = strchr(name, ':' );
+			if ( ptr )
+			{
+				// Has name and port
+				*ptr = 0;
+				if ( strlen(name) > 0 )
+				{
+					sprintf(simMgrName, "%s", name );
+				}
+				ptr += 1;
+				commPort = atoi(ptr );
+			}
+			else
+			{
+				strncpy(simMgrName, name, SIM_NAME_SIZE-2 );
+				simMgrName[strcspn(simMgrName, "\n\r")] = 0;
+			}
 		}
 		fclose(fd );
 	}
+	sprintf(msgbuf, "simCtlComm host \"%s\", port %d\n", simMgrName, commPort );
+	log_message("", msgbuf);
 }
 
 /* openSimMgr:
@@ -397,7 +426,7 @@ simCtlComm::trySimMgrOpen(char *hostName )
 	else
 	{
 		addr.sin_family = AF_INET;
-		addr.sin_port = htons(SYNC_PORT );
+		addr.sin_port = htons(commPort );
 		
 		addr.sin_addr.s_addr = inet_addr(hostAddr); 
 		

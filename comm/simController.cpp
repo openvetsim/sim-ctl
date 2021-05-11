@@ -53,7 +53,7 @@
 #include "simUtil.h"
 #include "shmData.h"
 
-simCtlComm comm(SYNC_PORT );
+simCtlComm comm;
 
 using namespace std;
 

@@ -55,7 +55,7 @@
 #include "../comm/shmData.h"
 
 wavTrigger wav;
-simCtlComm comm(SYNC_PORT );
+simCtlComm comm;
 
 struct shmData *shmData;
 

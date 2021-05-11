@@ -79,12 +79,6 @@
 #include "../comm/shmData.h"
 #include "../comm/simUtil.h"
 
-/*
-#include "../comm/simCtlComm.h"
-simCtlComm comm(SYNC_PORT );
-*/
-
-
 #define SCAN_CONFIG "/simulator/rfid.xml"
 #define PARSE_STATE_NONE	0
 #define PARSE_STATE_TAG		1
