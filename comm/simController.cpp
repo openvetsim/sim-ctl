@@ -359,37 +359,46 @@ simMgrSyncTime(void)
 	else
 	{
 // Super-simple parse routine
+
 		while (fgets(dbuff, 64, pipe1) != NULL)
 		{
-			for ( i = 0 ; dbuff[i] != 0 ; i++ )
+			if ( ( strlen(dbuff) > 20 ) &&
+				dbuff[0] == '"' &&
+				dbuff[1] == 'd' &&
+				dbuff[2] == 'a' &&
+				dbuff[3] == 't' &&
+				dbuff[4] == 'e' )
 			{
-				switch ( dbuff[i] )
+				for ( i = 0 ; dbuff[i] != 0 ; i++ )
 				{
-					case ':':
-					case '"':
-					case '}':
-					case '{':
-					case ',':
-						dbuff[i] = ' ';
-						break;
+					switch ( dbuff[i] )
+					{
+						case ':':
+						case '"':
+						case '}':
+						case '{':
+						case ',':
+							dbuff[i] = ' ';
+							break;
+					}
 				}
-			}
-			// Check for a data line
-			sts = sscanf(dbuff, "%s %s", name, value );
-			
-			if ( sts == 2 )
-			{
-				snprintf(buff, 1024, "date %s", value );
-				pipe2 = popen(buff, "r" );
-				if ( !pipe2 )
+				// Check for a data line
+				
+				sts = sscanf(dbuff, "%s %s", name, value );
+				if ( sts == 2 )
 				{
-					snprintf(buff, 1024, "set Date fails: %s", strerror(errno ) );
-					syslog (LOG_DAEMON | LOG_NOTICE, buff );
-				}
-				else
-				{
-					pclose(pipe2 );
-					syslog (LOG_DAEMON | LOG_NOTICE, buff );
+					snprintf(buff, 1024, "date %s", value );
+					pipe2 = popen(buff, "r" );
+					if ( !pipe2 )
+					{
+						snprintf(buff, 1024, "set Date fails: %s", strerror(errno ) );
+						syslog (LOG_DAEMON | LOG_NOTICE, buff );
+					}
+					else
+					{
+						pclose(pipe2 );
+						syslog (LOG_DAEMON | LOG_NOTICE, buff );
+					}
 				}
 			}
 		}
