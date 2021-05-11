@@ -82,6 +82,7 @@
 #define SCAN_CONFIG "/simulator/rfid.xml"
 #define PARSE_STATE_NONE	0
 #define PARSE_STATE_TAG		1
+#define PARSE_STATE_TRIM	2
 #define TAG_BUF_LEN 100
 
 using namespace std;
@@ -92,6 +93,7 @@ struct rfidData *rfidData;
 
 int tagCheck(uint64_t newid);
 int tagParse(const char *elem,  const char *value, struct rfidTag *tag );
+int trimParse(const char *elem,  const char *value );
 static void startParseState(int lvl, char *name );
 static void saveData(const xmlChar *xmlName, const xmlChar *xmlValue );
 static int readConfig(const char *filename);
@@ -115,7 +117,7 @@ char tagBuffer[TAG_BUF_LEN];
 
 const char *parse_states[] =
 {
-	"PARSE_STATE_NONE", "PARSE_STATE_TAG"
+	"PARSE_STATE_NONE", "PARSE_STATE_TAG", "PARSE_STATE_TRIM"
 };
 int parseTagNum = -1;
 
@@ -625,6 +627,38 @@ tagParse(const char *elem,  const char *value, struct rfidTag *tag )
 	return ( sts );
 }
 
+/* 
+ * FUNCTION: trimParse
+ *
+ * Called from XML parser to save a defined trim
+*/
+	
+int
+trimParse(const char *elem,  const char *value )
+{
+	int sts = 0;
+	
+	if ( ( ! elem ) || ( ! value) )
+	{
+		return ( -11 );
+	}
+	if ( strcmp(elem, ("heartTrim" ) ) == 0 )
+	{
+		shmData->auscultation.heartTrim  = atoi(value);
+		printf("Heart Trim %d\n", shmData->auscultation.heartTrim  );
+	}
+	else if ( strcmp(elem, ("lungTrim" ) ) == 0 )
+	{
+		shmData->auscultation.lungTrim = atoi(value );
+		printf("Lung Trim %d\n", shmData->auscultation.lungTrim  );
+	}
+	else
+	{
+		sts = 1;
+	}
+	return ( sts );
+}
+
 /**
  * startParseState:
  * @lvl: New level from XML
@@ -642,7 +676,7 @@ startParseState(int lvl, char *name )
 	}
 	switch ( lvl )
 	{
-		case 0:		// Top level - no actions
+		case 0:		// Top level
 			break;
 			
 		case 1:	// header has no action
@@ -650,6 +684,10 @@ startParseState(int lvl, char *name )
 			{
 				parse_state = PARSE_STATE_TAG;
 				parseTagNum++;
+			}
+			else if ( strcmp(name, "trim" ) == 0 )
+			{
+				parse_state = PARSE_STATE_TRIM;
 			}
 			break;
 			
@@ -672,6 +710,7 @@ endParseState(int lvl )
 	switch ( lvl )
 	{
 		case 0:	// Parsing Complete
+			parse_state = PARSE_STATE_NONE;
 			break;
 			
 		case 1:	// Section End
@@ -816,6 +855,10 @@ saveData(const xmlChar *xmlName, const xmlChar *xmlValue )
 			
 		case PARSE_STATE_TAG:
 			sts = tagParse(xmlLevels[xml_current_level].name, value, &rfidData->tags[parseTagNum] );
+			break;
+			
+		case PARSE_STATE_TRIM:
+			sts = trimParse(xmlLevels[xml_current_level].name, value );
 			break;
 			
 		default:

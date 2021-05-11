@@ -143,6 +143,8 @@ int main(int argc, char *argv[])
 	shmData->cpr.compression = 0;
 	shmData->cpr.release = 0;
 	shmData->cpr.duration = 0;
+	shmData->auscultation.heartTrim = 0;
+	shmData->auscultation.lungTrim = 0;
 	sem_init(&shmData->i2c_sema, 1, 1 ); // pshared =1, value =1
 	
 	sts = getI2CLock();
