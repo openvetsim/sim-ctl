@@ -968,13 +968,6 @@ main(int argc, char *argv[] )
 	current.heartGain = -65;
 	
 	wav.trackGain(PULSE_TRACK, MAX_MAX_VOLUME );
-	sts = comm.openListen(LISTEN_INACTIVE );
-	if ( sts )
-	{
-		perror("comm.openListen()" );
-		allAirOff(0);
-		exit ( -2 );
-	}
 
 	pthread_create (&threadInfo1, NULL, &sync_thread,(void *) NULL );
 	
@@ -1098,6 +1091,9 @@ sync_thread ( void *ptr )
 		gpioPinSet(tankPin, TURN_OFF );
 		exit ( -4 );
 	}
+	shmData->simMgrStatusPort = comm.simMgrStatusPort;
+	sprintf(shmData->simMgrIPAddr, "%s", comm.simMgrIPAddr );
+	
 	while ( 1 )
 	{
 		sts = comm.wait("" );
@@ -1109,6 +1105,9 @@ sync_thread ( void *ptr )
 				break;
 			case SYNC_BREATH:
 				current.breathCount += 1;
+				break;
+			case SYNC_STATUS_PORT:
+				shmData->simMgrStatusPort = comm.simMgrStatusPort;
 				break;
 		}
 	}

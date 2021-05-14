@@ -72,6 +72,7 @@ simCtlComm::simCtlComm()
 	commPort = SYNC_PORT;
 	simMgrName[0] = 0;
 	simMgrIPAddr[0] = 0;
+	simMgrStatusPort = 80;	// Default is standard HTML port. This can be overridden from the SimManager
 	
 	// Allowed formats for simmgrName file:
 	// Hostname or IP address
@@ -211,7 +212,7 @@ simCtlComm::openListen(int active )
 				sprintf(hostAddr, "%d.%d.%d.%d", myIP.b1, myIP.b2, myIP.b3, i );
 				if ( debug )
 				{
-					printf("Trying %s\n", hostAddr );
+					printf("Trying \"%s\"\n", hostAddr );
 				}
 				fd = this->trySimMgrOpen(hostAddr );
 				if ( fd <= 0 )
@@ -234,20 +235,30 @@ simCtlComm::openListen(int active )
 	}
 	else
 	{
-		//if ( debug )
+		sts = -1;
+		while ( sts )
 		{
-			sprintf(msgbuf, "Trying %s ", simMgrName );
-			log_message("", msgbuf);
-		}
-		fd = this->trySimMgrOpen(simMgrName );
-		if ( fd <= 0 )
-		{
-			sprintf(msgbuf, "trySimMgrOpen(%s) returns %d\n", simMgrName, fd );
-			log_message("", msgbuf);
-		}
-		else
-		{
-			commFD = fd;
+			if ( debug )
+			{
+				sprintf(msgbuf, "Trying \"%s\"", simMgrName );
+				log_message("", msgbuf);
+			}
+			fd = this->trySimMgrOpen(simMgrName );
+			if ( fd <= 0 )
+			{
+				sprintf(msgbuf, "trySimMgrOpen(%s) returns %d\n", simMgrName, fd );
+				log_message("", msgbuf);
+			}
+			else
+			{
+				commFD = fd;
+				sts = 0;
+			}
+			if ( sts )
+			{
+				// Not found - Wait and then try again
+				sleep(2 );
+			}
 		}
 	}
 	if ( commFD < 0 )
@@ -303,6 +314,19 @@ simCtlComm::wait(const char *syncMessage )
 				else if (  strncmp(buffer, "breath", 6 ) == 0 )
 				{
 					return ( SYNC_BREATH );
+				}
+				else if (  strncmp(buffer, "statusPort", 10 ) == 0 )
+				{
+					char *ptr;
+					
+					ptr = strchr(buffer, ':' );
+					if ( ptr )
+					{
+						ptr++;
+						this->simMgrStatusPort = atoi(ptr );
+						return (SYNC_STATUS_PORT);
+					}
+					return ( 0 );
 				}
 				else
 				{
@@ -379,7 +403,7 @@ simCtlComm::trySimMgrOpen(char *hostName )
 	{
 		if ( ldebug )
 		{
-			sprintf(msgbuf, "simCtlComm::trySimMgrOpen: IP Addr %s (res %d)\n", hostName, res );
+			sprintf(msgbuf, "simCtlComm::trySimMgrOpen: IP Addr \"%s\" (res %d)\n", hostName, res );
 			log_message("", msgbuf);
 		}
 		strncpy(hostAddr, hostName, 32 );
@@ -388,7 +412,7 @@ simCtlComm::trySimMgrOpen(char *hostName )
 	{
 		if ( ldebug )
 		{
-			sprintf(msgbuf, "simCtlComm::trySimMgrOpen: hostName %s\n", hostName );
+			sprintf(msgbuf, "simCtlComm::trySimMgrOpen: hostName \"%s\"\n", hostName );
 			log_message("", msgbuf);
 		}
 		if ( (he = gethostbyname( hostName ) ) == NULL) 
@@ -396,7 +420,7 @@ simCtlComm::trySimMgrOpen(char *hostName )
 			// No IP address found
 			if ( ldebug )
 			{
-				printf("simCtlComm::trySimMgrOpen: No IP found for host %s\n", hostName );
+				printf("simCtlComm::trySimMgrOpen: No IP found for host \"%s\"\n", hostName );
 			}
 			sprintf(msgbuf, "%s - res %d (%d.%d.%d.%d)", hostName, res, a,b,c,d );
 			log_message("", msgbuf);
@@ -412,7 +436,7 @@ simCtlComm::trySimMgrOpen(char *hostName )
 		strncpy(hostAddr , inet_ntoa(*addr_list[0]), 32 );
 		if ( ldebug )
 		{
-			sprintf(msgbuf, "simCtlComm::trySimMgrOpen: IP found for host %s is %s\n", hostName, hostAddr );
+			sprintf(msgbuf, "simCtlComm::trySimMgrOpen: IP found for host \"%s\" is \"%s\"\n", hostName, hostAddr );
 			log_message("", msgbuf);
 		}
 	}
@@ -476,7 +500,7 @@ simCtlComm::trySimMgrOpen(char *hostName )
 							//printf(msgbuf, "comm.openListen select(): %s", strerror(errno ) );
 							//log_message("", msgbuf);
 						} 
-						else if (res > 0) 
+						else if (res > 0)
 						{ 
 							// Socket selected for write 
 							lon = sizeof(int); 
@@ -499,7 +523,7 @@ simCtlComm::trySimMgrOpen(char *hostName )
 
 									sprintf(msgbuf, "Found simMgr at %s\n", hostAddr );
 									log_message("", msgbuf);
-						
+									
 									return ( fd );
 								}
 							}

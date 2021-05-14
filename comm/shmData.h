@@ -22,6 +22,7 @@
 #define SIMDATA_H_
 
 #include <semaphore.h>
+#include "simCtlComm.h"
 
 #define SHM_NAME	"shmData"
 #define SHM_CREATE	1
@@ -151,6 +152,7 @@ struct shmData
 {
 	sem_t	i2c_sema;	// Mutex lock - Lock for I2C bus access
 	char simMgrIPAddr[32];
+	int simMgrStatusPort;
 	
 	// This data is from the sim-mgr, it controls our outputs
 	struct cardiac cardiac;

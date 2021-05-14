@@ -58,11 +58,9 @@ case "$1" in
 		echo "Doing Stop"
 		do_stop
 		echo "Done"
-		exit 1
 		;;
 	*)
 		echo "Usage: /etc/init.d/simctl {start|stop|status|restart}"
-		exit 1
 		;;
 esac
 

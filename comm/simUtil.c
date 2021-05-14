@@ -463,6 +463,11 @@ cleanString(char *strIn )
 		in++;
 	}
 	*out = 0;
+	out--;
+	if ( *out == ' ' )
+	{
+		*out = 0;
+	}
 }
 
 #define NO_I2C_LOCK	1

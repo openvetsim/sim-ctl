@@ -1,0 +1,10 @@
+# Allowed formats for simmgrName file:
+# Hostname or IP address
+  # 192.168.1.22
+  # simmgr
+# Hostname or ip with port
+#       192.168.1.22:50200
+#       winvetsim:40844
+# Port only
+#               :50200
+#               :40844

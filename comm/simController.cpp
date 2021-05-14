@@ -48,12 +48,9 @@
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
 */
-	
-#include "simCtlComm.h"
+
 #include "simUtil.h"
 #include "shmData.h"
-
-simCtlComm comm;
 
 using namespace std;
 
@@ -67,9 +64,6 @@ struct shmData *shmData;
 char msgbuf[BUF_LEN_MAX+4];
 char simctlrReadCmd[BUF_LEN_MAX+4];
 char simctlrWriteCmd[BUF_LEN_MAX+4];
-
-char name[128];
-char value[128];
 
 void simMgrSyncTime(void);
 void simMgrRead(void );
@@ -156,17 +150,6 @@ int main(int argc, char *argv[])
 	
 	initializeSensorData();
 	
-	// Find the sim-mgr
-	sts = comm.openListen(LISTEN_INACTIVE );
-	if ( sts < 0 )
-	{
-		exit ( 0 );
-	}
-	memcpy(shmData->simMgrIPAddr, comm.simMgrIPAddr, SIM_IP_ADDR_SIZE );
-	sprintf(simctlrReadCmd, "simCurl  %s/cgi-bin/simstatus.cgi?simctrldata=1", comm.simMgrIPAddr );
-
-	simMgrSyncTime();
-	
 #ifdef DO_DEAMON_STARTS
 	// Start the other deamons
 	pulsePid = startProcess("/usr/local/bin/pulse" );
@@ -179,15 +162,23 @@ int main(int argc, char *argv[])
 	loop_count = 0;
 	while ( 1 )
 	{
-		if ( ( loop_count & 1 ) == 0 )
+		if ( shmData->simMgrStatusPort != 0 )
 		{
-			simMgrRead();
+			if ( ( loop_count & 1 ) == 0 )
+			{
+				simMgrRead();
+			}
+			else
+			{
+				simMgrWrite();
+			}
+			loop_count++;
+			if ( loop_count > 3000 )
+			{
+				// simMgrSyncTime();
+				loop_count = 0;
+			}
 		}
-		else
-		{
-			simMgrWrite();
-		}
-		loop_count++;
 		usleep(100000 );
 	}
 }
@@ -233,78 +224,90 @@ simMgrWrite(void )
 		if ( aus.side != shmData->auscultation.side )
 		{
 			aus.side = shmData->auscultation.side;
-			sprintf(simctlrWriteCmd, "simCurl  %s/cgi-bin/simstatus.cgi?set:auscultation:side=%d", 
-				comm.simMgrIPAddr,
+			sprintf(simctlrWriteCmd, "simCurl  %s:%d/cgi-bin/simstatus.cgi?set:auscultation:side=%d",
+				shmData->simMgrIPAddr,
+				shmData->simMgrStatusPort,
 				aus.side );
 			do_send++;
 		}
 		else if ( aus.row != shmData->auscultation.row ) 
 		{
 			aus.row = shmData->auscultation.row;
-			sprintf(simctlrWriteCmd, "simCurl  %s/cgi-bin/simstatus.cgi?set:auscultation:row=%d", 
-				comm.simMgrIPAddr,
+			sprintf(simctlrWriteCmd, "simCurl  %s:%d/cgi-bin/simstatus.cgi?set:auscultation:row=%d", 
+				shmData->simMgrIPAddr,
+				shmData->simMgrStatusPort,
 				aus.row );
 			do_send++;
 		}
 		else if ( aus.col != shmData->auscultation.col )
 		{
 			aus.col = shmData->auscultation.col;
-			sprintf(simctlrWriteCmd, "simCurl  %s/cgi-bin/simstatus.cgi?set:auscultation:col=%d", 
-				comm.simMgrIPAddr,
+			sprintf(simctlrWriteCmd, "simCurl  %s:%d/cgi-bin/simstatus.cgi?set:auscultation:col=%d", 
+				shmData->simMgrIPAddr,
+				shmData->simMgrStatusPort,
 				aus.col );
 			do_send++;
 		}
 		else if ( pul.right_dorsal != shmData->pulse.right_dorsal ) 
 		{
 			pul.right_dorsal = shmData->pulse.right_dorsal;
-			sprintf(simctlrWriteCmd, "simCurl  %s/cgi-bin/simstatus.cgi?set:pulse:right_dorsal=%d",
-				comm.simMgrIPAddr,
+			sprintf(simctlrWriteCmd, "simCurl  %s:%d/cgi-bin/simstatus.cgi?set:pulse:right_dorsal=%d",
+				shmData->simMgrIPAddr,
+				shmData->simMgrStatusPort,
 				pul.right_dorsal );
 			do_send++;
 		}
 		else if ( pul.left_dorsal != shmData->pulse.left_dorsal ) 
 		{
 			pul.left_dorsal = shmData->pulse.left_dorsal;
-			sprintf(simctlrWriteCmd, "simCurl  %s/cgi-bin/simstatus.cgi?set:pulse:left_dorsal=%d",
-				comm.simMgrIPAddr,
+			sprintf(simctlrWriteCmd, "simCurl  %s:%d/cgi-bin/simstatus.cgi?set:pulse:left_dorsal=%d",
+				shmData->simMgrIPAddr,
+				shmData->simMgrStatusPort,
 				pul.left_dorsal );
 			do_send++;
 		}
 		else if ( pul.right_femoral != shmData->pulse.right_femoral ) 
 		{
 			pul.right_femoral = shmData->pulse.right_femoral;
-			sprintf(simctlrWriteCmd, "simCurl  %s/cgi-bin/simstatus.cgi?set:pulse:right_femoral=%d",
-				comm.simMgrIPAddr,
+			sprintf(simctlrWriteCmd, "simCurl  %s:%d/cgi-bin/simstatus.cgi?set:pulse:right_femoral=%d",
+				shmData->simMgrIPAddr,
+				shmData->simMgrStatusPort,
 				pul.right_femoral );
 			do_send++;
 		}
 		else if ( pul.left_femoral != shmData->pulse.left_femoral ) 
 		{
 			pul.left_femoral = shmData->pulse.left_femoral;
-			sprintf(simctlrWriteCmd, "simCurl  %s/cgi-bin/simstatus.cgi?set:pulse:left_femoral=%d",
-				comm.simMgrIPAddr,
+			sprintf(simctlrWriteCmd, "simCurl  %s:%d/cgi-bin/simstatus.cgi?set:pulse:left_femoral=%d",
+				shmData->simMgrIPAddr,
+				shmData->simMgrStatusPort,
 				pul.left_femoral );
 			do_send++;
 		}
 
 		else if ( shmData->respiration.manual_breath )
 		{
-			sprintf(simctlrWriteCmd, "simCurl  %s/cgi-bin/simstatus.cgi?set:respiration:manual_breath=1",
-				comm.simMgrIPAddr );
+			sprintf(simctlrWriteCmd, "simCurl  %s:%d/cgi-bin/simstatus.cgi?set:respiration:manual_breath=1",
+				shmData->simMgrIPAddr,
+				shmData->simMgrStatusPort );
 			shmData->respiration.manual_breath = 0;
 			do_send++;
 		}
 		else if ( cpr.compression != shmData->cpr.compression )
 		{
-			sprintf(simctlrWriteCmd, "simCurl  %s/cgi-bin/simstatus.cgi?set:cpr:compression=%d",
-				comm.simMgrIPAddr, shmData->cpr.compression );
+			sprintf(simctlrWriteCmd, "simCurl  %s:%d/cgi-bin/simstatus.cgi?set:cpr:compression=%d",
+				shmData->simMgrIPAddr, 
+				shmData->simMgrStatusPort, 
+				shmData->cpr.compression );
 			cpr.compression = shmData->cpr.compression;
 			do_send++;
 		}
 		else if ( cpr.release != shmData->cpr.release )
 		{
-			sprintf(simctlrWriteCmd, "simCurl  %s/cgi-bin/simstatus.cgi?set:cpr:release=%d",
-				comm.simMgrIPAddr, shmData->cpr.release );
+			sprintf(simctlrWriteCmd, "simCurl  %s:%d/cgi-bin/simstatus.cgi?set:cpr:release=%d",
+				shmData->simMgrIPAddr, 
+				shmData->simMgrStatusPort,
+				shmData->cpr.release );
 			cpr.release = shmData->cpr.release;
 			do_send++;
 		}
@@ -340,7 +343,7 @@ simMgrWrite(void )
 		}
 	}
 }
-
+/*
 void
 simMgrSyncTime(void)
 {
@@ -348,10 +351,19 @@ simMgrSyncTime(void)
 	FILE *pipe2;
 	char buff[1024];
 	char dbuff[64];
+	char name[128];
+	char v1[128];
+	char v2[128];
+	char v3[128];
+	char v4[128];
+	char v5[128];
+	char v6[128];
+	char v7[128];
 	int i;
 	int sts;
-	
-	sprintf(buff, "simCurl  %s/cgi-bin/simstatus.cgi?date=1", comm.simMgrIPAddr );
+
+	sprintf(buff, "simCurl  %s:%d/cgi-bin/simstatus.cgi?date=1", shmData->simMgrIPAddr, shmData->simMgrStatusPort );
+	log_message("", buff );
 	pipe1 = popen(buff, "r" );
 	if ( !pipe1 )
 	{
@@ -371,25 +383,32 @@ simMgrSyncTime(void)
 				dbuff[3] == 't' &&
 				dbuff[4] == 'e' )
 			{
-				for ( i = 0 ; dbuff[i] != 0 ; i++ )
-				{
-					switch ( dbuff[i] )
-					{
-						case ':':
-						case '"':
-						case '}':
-						case '{':
-						case ',':
-							dbuff[i] = ' ';
-							break;
-					}
-				}
-				// Check for a data line
-				
-				sts = sscanf(dbuff, "%s %s", name, value );
+				log_message("", dbuff );
+			
+				// WinVetSim format: "date":"Fri May 14 11:00:11 AM" 
+				// Linux format: "date":"051411032021.26"
+				sts = sscanf(dbuff, "\"%s\":\"%s %s %s %s:%s:%s %s\"", 
+								name, v1, v2, v3, v4, v5, v6, v7 );
 				if ( sts == 2 )
 				{
-					snprintf(buff, 1024, "date %s", value );
+					// Linux
+					snprintf(buff, 1024, "date -s \"%s\"", v1 );
+					pipe2 = popen(buff, "r" );
+					if ( !pipe2 )
+					{
+						snprintf(buff, 1024, "set Date fails: %s", strerror(errno ) );
+						syslog (LOG_DAEMON | LOG_NOTICE, buff );
+					}
+					else
+					{
+						pclose(pipe2 );
+						syslog (LOG_DAEMON | LOG_NOTICE, buff );
+					}
+				}
+				else if ( sts == 7 )
+				{
+					// WinVetSim
+					snprintf(buff, 1024, "date \"%s\"", v1 );
 					pipe2 = popen(buff, "r" );
 					if ( !pipe2 )
 					{
@@ -407,6 +426,8 @@ simMgrSyncTime(void)
 		pclose(pipe1 );
 	}
 }
+*/
+int maxLog = 0;
 void
 simMgrRead(void )
 {
@@ -414,7 +435,11 @@ simMgrRead(void )
 	int section;
 	int i;
 	int sts;
+	char name[128];
+	char value[128];
 	
+	sprintf(simctlrReadCmd, "simCurl  %s:%d/cgi-bin/simstatus.cgi?simctrldata=1", shmData->simMgrIPAddr, shmData->simMgrStatusPort );
+
 	pipe = popen(simctlrReadCmd, "r" );
 	if ( !pipe )
 	{

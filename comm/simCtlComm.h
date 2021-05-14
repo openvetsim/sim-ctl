@@ -28,6 +28,7 @@
 #define SYNC_PULSE			1
 #define SYNC_PULSE_VPC		2
 #define SYNC_BREATH			3
+#define SYNC_STATUS_PORT	4
 
 #define SIM_IP_ADDR_SIZE 32
 #define SIM_NAME_SIZE	512
@@ -50,6 +51,7 @@ public:
 	
 	char simMgrName[SIM_NAME_SIZE];
 	char simMgrIPAddr[SIM_IP_ADDR_SIZE];
+	int  simMgrStatusPort;
 	virtual ~simCtlComm();
 };
 

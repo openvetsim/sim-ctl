@@ -37,8 +37,8 @@ simParse.o: simParse.c shmData.h
 simCtlComm.o: simCtlComm.cpp simCtlComm.h simUtil.h 
 	g++   $(CFLAGS) -c -o simCtlComm.o simCtlComm.cpp
 	
-simController: simController.cpp simUtil.h shmData.h simUtil.o simCtlComm.o simParse.o
-	g++   $(CFLAGS) $(LDFLAGS) -o simController simController.cpp simCtlComm.o simUtil.o simParse.o
+simController: simController.cpp simUtil.h shmData.h simUtil.o simParse.o
+	g++   $(CFLAGS) $(LDFLAGS) -o simController simController.cpp simUtil.o simParse.o
 
 ctlstatus.cgi: ctlstatus.cpp simUtil.h shmData.h simUtil.o
 	g++   $(CFLAGS) $(LDFLAGS) -o ctlstatus.cgi ctlstatus.cpp simUtil.o 

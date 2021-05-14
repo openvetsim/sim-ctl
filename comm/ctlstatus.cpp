@@ -28,7 +28,6 @@
 #include <utility>
 #include <algorithm>
 
-#include "simCtlComm.h"
 #include "simUtil.h"
 #include "shmData.h"
 
@@ -128,6 +127,8 @@ sendStatus(void )
 	
 	cout << " \"general\" : {\n";
 	makejson(cout, "simMgrIPAddr", shmData->simMgrIPAddr );
+	cout << ",\n";
+	makejson(cout, "simMgrStatusPort", itoa(shmData->simMgrStatusPort) );
 	cout << "\n}\n";
 	
 	cout << "\n}\n";

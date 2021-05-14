@@ -25,8 +25,8 @@ default:	$(targets)
 
 all: $(targets)
 
-breathSense: breathSense.c  ../comm/simCtlComm.h  ../comm/simUtil.h ../comm/shmData.h ../comm/simCtlComm.o ../comm/simUtil.o
-	g++ breathSense.c  $(CFLAGS)  ../comm/simCtlComm.o ../comm/simUtil.o $(LDFLAGS) -o breathSense
+breathSense: breathSense.c  ../comm/simUtil.h ../comm/shmData.h ../comm/simUtil.o
+	g++ breathSense.c  $(CFLAGS) ../comm/simUtil.o $(LDFLAGS) -o breathSense
 
 install: $(installTargets) .FORCE
 	sudo cp -u $(installTargets) /usr/local/bin

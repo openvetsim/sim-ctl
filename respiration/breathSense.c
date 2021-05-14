@@ -40,7 +40,6 @@
 #include <syslog.h>
 #include <signal.h>
 #include <string.h>
-#include "../comm/simCtlComm.h"
 #include "../comm/simUtil.h"
 #include "../comm/shmData.h"
 
