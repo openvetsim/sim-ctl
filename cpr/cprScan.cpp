@@ -52,7 +52,7 @@ int debug = 0;
 #define Z_IDLE		16000
 #define Z_COMPRESS	19000
 #define Z_RELEASE	5000
-#define X_Y_LIMIT	8000
+#define X_Y_LIMIT	10000
 #define CPR_HOLD	20
 
 int main(int argc, char *argv[])
