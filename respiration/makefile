@@ -31,7 +31,7 @@ breathSense: breathSense.c  ../comm/simUtil.h ../comm/shmData.h ../comm/simUtil.
 install: $(installTargets) .FORCE
 	sudo cp -u $(installTargets) /usr/local/bin
 
-install: $(installTargets) .FORCE
+factory: $(installTargets) .FORCE
 	sudo cp $(installTargets) /usr/local/bin
 
 clean: .FORCE
