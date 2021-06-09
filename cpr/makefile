@@ -32,7 +32,10 @@ cprI2C.o: cprI2C.cpp cprI2C.h ../comm/simUtil.h ../comm/shmData.h
 	
 install: $(installTargets) .FORCE
 	sudo cp -u $(installTargets) /usr/local/bin
-
+	
+factory: $(installTargets) .FORCE
+	sudo cp $(installTargets) /usr/local/bin
+	
 clean: .FORCE
 	rm -f $(targets) *.o *.cgi
 	

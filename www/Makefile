@@ -12,3 +12,6 @@ clean:
 
 install:
 	sudo cp -u -r html /var/www
+	
+factory:
+	sudo cp -r html /var/www

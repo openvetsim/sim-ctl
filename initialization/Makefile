@@ -30,17 +30,28 @@ all:
 install: all /etc/init.d/simctl
 	if [ ! -d /simulator ]; then \
 		sudo mkdir /simulator; \
-		sudo chown debian:debian /simulator; \
-		cp rfid.xml /simulator; \
-		cp soundList.csv /simulator; \
+		sudo chown debian:debian /simulator; 
 	fi
 	
 	if [ ! -f /simulator/soundList.csv ]; then \
 		cp soundList.csv /simulator; \
 	fi
 	
+	if [ ! -f /simulator/rfid.xml ]; then \
+		cp rfid.xml /simulator; \
+	fi
+	
 	if [ ! -f /simulator/simmgrName ]; then \
 		cp simmgrName /simulator; \
+	fi
+	
+factory: all /etc/init.d/simctl
+	if [ ! -d /simulator ]; then \
+		sudo mkdir /simulator; \
+	fi
+	sudo chown debian:debian /simulator; \
+	cp rfid.xml /simulator; \
+	cp soundList.csv /simulator; \
 	fi
 	
 # killall is required for shutting down the simctl service.

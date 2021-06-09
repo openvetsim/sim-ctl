@@ -32,7 +32,7 @@ default:
 build:
 	@mkdir -p build
 
-all clean install :
+all clean install factory:
 	@for dir in $(SUBDIRS); do \
 		$(MAKE) $(MAKEFLAGS) -C $$dir  $@; \
 		done

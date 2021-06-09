@@ -31,6 +31,9 @@ rfidScan: rfidScan.cpp  rfidScan.h ../comm/shmData.h ../comm/simCtlComm.h ../com
 install: $(installTargets) .FORCE
 	sudo cp -u $(installTargets) /usr/local/bin
 	
+factory:  $(installTargets) .FORCE
+	sudo cp $(installTargets) /usr/local/bin
+
 clean: .FORCE
 	rm -f $(targets) *.o *.cgi gpio
 	

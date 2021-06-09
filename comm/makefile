@@ -46,6 +46,10 @@ ctlstatus.cgi: ctlstatus.cpp simUtil.h shmData.h simUtil.o
 install: $(targets) .FORCE $(cgiTargets)
 	sudo cp -u  $(installTargets) /usr/local/bin
 	sudo cp -u $(cgiTargets) /var/www/cgi-bin
+
+factory: $(targets) .FORCE $(cgiTargets)
+	sudo cp  $(installTargets) /usr/local/bin
+	sudo cp  $(cgiTargets) /var/www/cgi-bin
 	
 clean: .FORCE
 	rm -f $(targets) *.o
