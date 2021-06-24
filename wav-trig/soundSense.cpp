@@ -678,7 +678,8 @@ main(int argc, char *argv[] )
 	int sts;
 	struct sigaction new_action;
 	int changed;
-
+	int listenState = FALSE;
+	
 	if ( argc < 2 )
 	{
 		cout << "Usage:\n";
@@ -986,13 +987,7 @@ main(int argc, char *argv[] )
 			log_message("", msgbuf);
 		}
 	}
-	
-	wav.trackPlayPoly(0, 5);	// Bark
-	while ( wav.getTracksPlaying() > 0 )
-	{
-		usleep(10000);
-	}
-	
+
 	while ( 1 )
 	{
 		// Master off based on active auscultation
@@ -1012,6 +1007,28 @@ main(int argc, char *argv[] )
 		}
 		else
 		{
+		if ( listenState != comm.state )
+		{
+			// listenState has changed. If new state is TRUE then bark
+			listenState = comm.state;
+			if ( listenState == TRUE )
+			{
+				int savedVolume = current.masterGain;
+				wav.channelGain(0, MAX_VOLUME);
+				current.masterGain = MAX_VOLUME;
+				while ( wav.getTracksPlaying() > 0 )
+				{
+					usleep(10000);
+				}
+				wav.trackGain(5, 0 );
+				wav.trackPlayPoly(0, 5);	// Bark
+				while ( wav.getTracksPlaying() > 0 )
+				{
+					usleep(10000);
+				}
+				wav.channelGain(0, savedVolume);
+			}
+		}
 		if ( ( shmData->auscultation.side == 0 ) && ( current.masterGain != MIN_VOLUME ) )
 		{
 			wav.channelGain(0, MIN_VOLUME);
@@ -1093,7 +1110,7 @@ sync_thread ( void *ptr )
 	}
 	shmData->simMgrStatusPort = comm.simMgrStatusPort;
 	sprintf(shmData->simMgrIPAddr, "%s", comm.simMgrIPAddr );
-	
+
 	while ( 1 )
 	{
 		sts = comm.wait("" );

@@ -32,7 +32,12 @@
 
 #define SIM_IP_ADDR_SIZE 32
 #define SIM_NAME_SIZE	512
-
+#ifndef TRUE
+#define TRUE	true
+#endif
+#ifndef FALSE
+#define FALSE	false
+#endif
 class simCtlComm {
 
 private:
@@ -49,6 +54,7 @@ public:
 	int wait(const char *syncMessage );
 	void show(void );
 	
+	int state;
 	char simMgrName[SIM_NAME_SIZE];
 	char simMgrIPAddr[SIM_IP_ADDR_SIZE];
 	int  simMgrStatusPort;

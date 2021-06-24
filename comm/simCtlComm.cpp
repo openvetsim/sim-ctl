@@ -73,6 +73,7 @@ simCtlComm::simCtlComm()
 	simMgrName[0] = 0;
 	simMgrIPAddr[0] = 0;
 	simMgrStatusPort = 80;	// Default is standard HTML port. This can be overridden from the SimManager
+	state = FALSE;	// TRUE when connection is good.
 	
 	// Allowed formats for simmgrName file:
 	// Hostname or IP address
@@ -347,7 +348,9 @@ simCtlComm::wait(const char *syncMessage )
 			len = write(commFD, buffer, 1 );
 			if ( ( len < 0 )  ||  ( errno == EPIPE ) )
 			{
+				state = FALSE;
 				this->openListen(1);
+				
 				sprintf(msgbuf, "Closed - Reopen Pipe" );
 				log_message("", msgbuf);
 			}
@@ -523,6 +526,7 @@ simCtlComm::trySimMgrOpen(char *hostName )
 
 									sprintf(msgbuf, "Found simMgr at %s\n", hostAddr );
 									log_message("", msgbuf);
+									state = TRUE;
 									
 									return ( fd );
 								}
