@@ -33,6 +33,10 @@ default:
 build:
 	@mkdir -p build
 
+webconfig:
+	sudo cp initialization/nginx_default /etc/nginx/sites-enabled/default
+	sudo service nginx restart
+	
 all clean install factory:
 	@for dir in $(SUBDIRS); do \
 		$(MAKE) $(MAKEFLAGS) -C $$dir  $@; \
