@@ -41,15 +41,17 @@ simController: simController.cpp simUtil.h shmData.h simUtil.o simParse.o
 	g++   $(CFLAGS) $(LDFLAGS) -o simController simController.cpp simUtil.o simParse.o
 
 ctlstatus.cgi: ctlstatus.cpp simUtil.h shmData.h simUtil.o
-	g++   $(CFLAGS) $(LDFLAGS) -o ctlstatus.cgi ctlstatus.cpp simUtil.o 
+	g++   $(CFLAGS) $(LDFLAGS) -o ctlstatus.cgi ctlstatus.cpp simUtil.o
 
 install: $(targets) .FORCE $(cgiTargets)
 	sudo cp -u  $(installTargets) /usr/local/bin
 	sudo cp -u $(cgiTargets) /var/www/cgi-bin
+	sudo chmod ug+s /var/www/cgi-bin/*.cgi
 
 factory: $(targets) .FORCE $(cgiTargets)
 	sudo cp  $(installTargets) /usr/local/bin
 	sudo cp  $(cgiTargets) /var/www/cgi-bin
+	sudo chmod ug+s /var/www/cgi-bin/*.cgi
 	
 clean: .FORCE
 	rm -f $(targets) *.o

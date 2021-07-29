@@ -58,7 +58,8 @@
 				$('#gaugeRF .gauge-arrow').trigger('updateGauge', (response.pulse.RF_AIN / 4096 ) * 100);
 				$('#gaugeLD .gauge-arrow').trigger('updateGauge', (response.pulse.LD_AIN / 4096 ) * 100);
 				$('#gaugeRD .gauge-arrow').trigger('updateGauge', (response.pulse.RD_AIN / 4096 ) * 100);
-				$('#gaugeBreath .gauge-arrow').trigger('updateGauge', (response.respiration.ain / 512 ) * 100);
+				$('#gaugeBreath .gauge-arrow').trigger('updateGauge', (response.respiration.ain / 1024 ) * 100);
+				$('#ain0').text(response.respiration.ain);
 				if ( response.respiration.active > 0 )
 				{
 					$('#gaugeBreath').css({'background-color':'#017813'} );
@@ -227,6 +228,9 @@
 	  border-radius: 50%;
 	  display: inline-block;
 	}
+	#ain0 {
+	  display: inline-block;
+	}
     </style>
 </head>
 <body>
@@ -277,9 +281,11 @@
 		<p>Manual Breath</p>
 		<div id="gaugeBreath" class="gauge gauge-green">
 			<div class="gauge-arrow" data-percentage="0"
-				 style="transform: rotate(0deg);"></div>
+				 style="transform: rotate(0deg);">
+			</div>
 		</div>
 	</div>
+	
 	<div class="lundLeds">
 		Rise <span class="dot" id="riseState"></span>
 		Fall <span class="dot" id="fallState"></span>
@@ -297,6 +303,7 @@
 		Z <p class='val' id='zval'></p>
 		</div>
 		<canvas id="cprTrace" class="vs-trace" width="250" height="150"></canvas>
+		<p><span id="ain0">0</span></p>
 		<br>
 		
 	</div>
