@@ -348,7 +348,8 @@ simCtlComm::wait(const char *syncMessage )
 			len = write(commFD, buffer, 1 );
 			if ( ( len < 0 )  ||  ( errno == EPIPE ) )
 			{
-				state = FALSE;
+				// Leave state as TRUE, to prevent additional barks.
+				// state = FALSE;
 				this->openListen(1);
 				
 				sprintf(msgbuf, "Closed - Reopen Pipe" );
