@@ -283,12 +283,11 @@ simCtlComm::openListen(int active )
 #define SM_BUF_MAX	32
 
 int
-simCtlComm::wait(const char *syncMessage )
+simCtlComm::wait(void )
 {
 	int len;
 	char buffer[SM_BUF_MAX];
-	int msgLen = strlen(syncMessage );
-	
+	int syncState = SYNC_NONE;
 	while ( 1 )
 	{
 		memset(buffer, 0, SM_BUF_MAX );
@@ -299,45 +298,34 @@ simCtlComm::wait(const char *syncMessage )
 			{
 				printf("%s", buffer );
 			}
-			if ( msgLen == 0 )
+			syncState = SYNC_NONE;
+			if ( strstr(buffer, "pulse" ) )
 			{
-				if ( strncmp(buffer, "pulse", 5 ) == 0 )
+				syncState |= SYNC_PULSE;
+			}
+			if ( strstr(buffer, "pulseVPC" ) )
+			{
+				syncState |= SYNC_PULSE_VPC;
+			}
+			if (  strstr(buffer, "breath" )  )
+			{
+				syncState |= SYNC_BREATH;
+			}
+			if (  strstr(buffer, "statusPort" )  )
+			{
+				char *ptr;
+				
+				ptr = strchr(buffer, ':' );
+				if ( ptr )
 				{
-					if ( strncmp(buffer, "pulseVPC", 8 ) == 0 )
-					{
-						return ( SYNC_PULSE_VPC );
-					}
-					else
-					{
-						return ( SYNC_PULSE );
-					}
-				}
-				else if (  strncmp(buffer, "breath", 6 ) == 0 )
-				{
-					return ( SYNC_BREATH );
-				}
-				else if (  strncmp(buffer, "statusPort", 10 ) == 0 )
-				{
-					char *ptr;
-					
-					ptr = strchr(buffer, ':' );
-					if ( ptr )
-					{
-						ptr++;
-						this->simMgrStatusPort = atoi(ptr );
-						return (SYNC_STATUS_PORT);
-					}
-					return ( 0 );
-				}
-				else
-				{
-					sprintf(msgbuf, "bad sync msg %s", buffer );
-					log_message("", msgbuf);
+					ptr++;
+					this->simMgrStatusPort = atoi(ptr );
+					syncState |= SYNC_STATUS_PORT;
 				}
 			}
-			else if (  strncmp(buffer, syncMessage, msgLen ) == 0 )
+			if ( syncState != SYNC_NONE )
 			{
-				return ( 1 );
+				return ( syncState );
 			}
 		}
 		else

@@ -25,10 +25,11 @@
 #define LISTEN_ACTIVE	1
 #define LISTEN_INACTIVE	0
 
+#define SYNC_NONE			0
 #define SYNC_PULSE			1
 #define SYNC_PULSE_VPC		2
-#define SYNC_BREATH			3
-#define SYNC_STATUS_PORT	4
+#define SYNC_BREATH			4
+#define SYNC_STATUS_PORT	8
 
 #define SIM_IP_ADDR_SIZE 32
 #define SIM_NAME_SIZE	512
@@ -51,7 +52,7 @@ public:
 	// Support for Sync Port
 	int openListen(int active );	// If Active is set, the port stays open. Otherwise, this is simply used to discover the simmgr
 	int closeListen(void );
-	int wait(const char *syncMessage );
+	int wait(void );
 	void show(void );
 	
 	int state;

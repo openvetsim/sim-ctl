@@ -88,6 +88,8 @@ timer_t rise_timer;
 struct sigevent heart_sev;
 struct sigevent breath_sev;
 struct sigevent rise_sev;
+	
+time_t fallStopTime = 0;
 
 #define HEART_TIMER_SIG		(SIGRTMIN+2)
 #define BREATH_TIMER_SIG	(SIGRTMIN+3)
@@ -635,6 +637,8 @@ void allAirOff(int quiet )
 	{
 		shmData->respiration.riseState = 0;
 		shmData->respiration.fallState = 0;
+		fallStopTime = 0;
+		lungState = 0;
 	}
 }
 /*
@@ -1113,19 +1117,19 @@ sync_thread ( void *ptr )
 
 	while ( 1 )
 	{
-		sts = comm.wait("" );
-		switch ( sts )
+		sts = comm.wait();
+		if ( sts & (SYNC_PULSE | SYNC_PULSE_VPC ) )
 		{
-			case SYNC_PULSE:
-			case SYNC_PULSE_VPC:
-				current.heartCount += 1;
-				break;
-			case SYNC_BREATH:
-				current.breathCount += 1;
-				break;
-			case SYNC_STATUS_PORT:
-				shmData->simMgrStatusPort = comm.simMgrStatusPort;
-				break;
+			current.heartCount += 1;
+		}
+		if ( sts & SYNC_BREATH )
+		{
+			current.breathCount += 1;
+			allAirOff(0 );
+		}
+		if( sts & SYNC_STATUS_PORT )
+		{
+			shmData->simMgrStatusPort = comm.simMgrStatusPort;
 		}
 	}
 }
@@ -1521,9 +1525,6 @@ lungRise(int control )
 	1 - Play Sound
 	
 */
-
-	
-time_t fallStopTime = 0;
 	
 #define FLIP_LUNG	1
 void 
@@ -1554,6 +1555,7 @@ runLung( void )
 	}
 	if ( shmData->respiration.active && shmData->respiration.chest_movement )
 	{
+		// Manual Respiration
 		lungFall(TURN_OFF );
 		lungRise(TURN_ON );
 	}
