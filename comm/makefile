@@ -28,11 +28,11 @@ all:	$(targets) $(cgiTargets)
 simCurl:	curl.cpp
 	g++   $(CFLAGS) -lcurl -o simCurl curl.cpp
 	
-simUtil.o: simUtil.c simUtil.h
-	g++   $(CFLAGS) -c -o simUtil.o simUtil.c
+simUtil.o: simUtil.cpp simUtil.h
+	g++   $(CFLAGS) -c -o simUtil.o simUtil.cpp
 
-simParse.o: simParse.c shmData.h
-	g++   $(CFLAGS) -c -o simParse.o simParse.c
+simParse.o: simParse.cpp shmData.h
+	g++   $(CFLAGS) -c -o simParse.o simParse.cpp
 
 simCtlComm.o: simCtlComm.cpp simCtlComm.h simUtil.h 
 	g++   $(CFLAGS) -c -o simCtlComm.o simCtlComm.cpp

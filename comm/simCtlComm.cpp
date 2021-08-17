@@ -247,8 +247,8 @@ simCtlComm::openListen(int active )
 			fd = this->trySimMgrOpen(simMgrName );
 			if ( fd <= 0 )
 			{
-				sprintf(msgbuf, "trySimMgrOpen(%s) returns %d\n", simMgrName, fd );
-				log_message("", msgbuf);
+				//sprintf(msgbuf, "trySimMgrOpen(%s) returns %d\n", simMgrName, fd );
+				//log_message("", msgbuf);
 			}
 			else
 			{
@@ -258,7 +258,7 @@ simCtlComm::openListen(int active )
 			if ( sts )
 			{
 				// Not found - Wait and then try again
-				sleep(2 );
+				sleep(10 );
 			}
 		}
 	}

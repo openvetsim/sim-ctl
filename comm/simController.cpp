@@ -65,7 +65,7 @@ char msgbuf[BUF_LEN_MAX+4];
 char simctlrReadCmd[BUF_LEN_MAX+4];
 char simctlrWriteCmd[BUF_LEN_MAX+4];
 
-void simMgrSyncTime(void);
+int simMgrSyncTime(void);
 void simMgrRead(void );
 void simMgrWrite(void );
 void initializeSensorData(void );
@@ -159,7 +159,9 @@ int main(int argc, char *argv[])
 	cprPid = startProcess("/usr/local/bin/cprScan" );
 #endif // DO_DEAMON_STARTS
 
-	loop_count = 0;
+	loop_count = 30;
+	int timeWasSet = 0;
+	
 	while ( 1 )
 	{
 		if ( shmData->simMgrStatusPort != 0 )
@@ -172,11 +174,22 @@ int main(int argc, char *argv[])
 			{
 				simMgrWrite();
 			}
-			loop_count++;
-			if ( loop_count > 3000 )
+			loop_count--;
+			if ( loop_count < 1 )
 			{
-				// simMgrSyncTime();
-				loop_count = 0;
+				sts = simMgrSyncTime();
+				if ( sts == 0 )
+				{
+					timeWasSet = 1;
+				}
+				if ( timeWasSet )
+				{
+					loop_count = (60*60*100);	// 60 minutes
+				}
+				else
+				{
+					loop_count = 30;	// 0.3 seconds
+				}
 			}
 		}
 		usleep(100000 );
@@ -343,8 +356,8 @@ simMgrWrite(void )
 		}
 	}
 }
-/*
-void
+
+int
 simMgrSyncTime(void)
 {
 	FILE *pipe1;
@@ -359,11 +372,14 @@ simMgrSyncTime(void)
 	char v5[128];
 	char v6[128];
 	char v7[128];
-	int i;
+	int month;
 	int sts;
-
+	int rval = -1;
+	int len;
+	int i;
+	
 	sprintf(buff, "simCurl  %s:%d/cgi-bin/simstatus.cgi?date=1", shmData->simMgrIPAddr, shmData->simMgrStatusPort );
-	log_message("", buff );
+	//log_message("", buff );
 	pipe1 = popen(buff, "r" );
 	if ( !pipe1 )
 	{
@@ -376,57 +392,107 @@ simMgrSyncTime(void)
 
 		while (fgets(dbuff, 64, pipe1) != NULL)
 		{
-			if ( ( strlen(dbuff) > 20 ) &&
+			len = strlen(dbuff);
+			//snprintf(msgbuf, BUF_LEN_MAX, "simMgrSyncTime: %d \"%s\"", len, dbuff );
+			//log_message("", msgbuf );
+			
+			if ( ( len > 20 ) &&
 				dbuff[0] == '"' &&
 				dbuff[1] == 'd' &&
 				dbuff[2] == 'a' &&
 				dbuff[3] == 't' &&
 				dbuff[4] == 'e' )
 			{
-				log_message("", dbuff );
-			
-				// WinVetSim format: "date":"Fri May 14 11:00:11 AM" 
-				// Linux format: "date":"051411032021.26"
+				// WinVetSim format: "date":"Fri May 14 11:00:11 2021" 
 				sts = sscanf(dbuff, "\"%s\":\"%s %s %s %s:%s:%s %s\"", 
 								name, v1, v2, v3, v4, v5, v6, v7 );
-				if ( sts == 2 )
-				{
-					// Linux
-					snprintf(buff, 1024, "date -s \"%s\"", v1 );
-					pipe2 = popen(buff, "r" );
-					if ( !pipe2 )
-					{
-						snprintf(buff, 1024, "set Date fails: %s", strerror(errno ) );
-						syslog (LOG_DAEMON | LOG_NOTICE, buff );
-					}
-					else
-					{
-						pclose(pipe2 );
-						syslog (LOG_DAEMON | LOG_NOTICE, buff );
-					}
-				}
-				else if ( sts == 7 )
+				if ( sts == 7 )
 				{
 					// WinVetSim
-					snprintf(buff, 1024, "date \"%s\"", v1 );
+					if ( strncmp(v2, "Jan", 3 ) == 0 )
+						month = 1;
+					if ( strncmp(v2, "Feb", 3 ) == 0 )
+						month = 2;
+					if ( strncmp(v2, "Mar", 3 ) == 0 )
+						month = 3;
+					if ( strncmp(v2, "Apr", 3 ) == 0 )
+						month = 4;
+					if ( strncmp(v2, "May", 3 ) == 0 )
+						month = 5;
+					if ( strncmp(v2, "Jun", 3 ) == 0 )
+						month = 6;
+					if ( strncmp(v2, "Jul", 3 ) == 0 )
+						month = 7;
+					if ( strncmp(v2, "Aug", 3 ) == 0 )
+						month = 8;
+					if ( strncmp(v2, "Sep", 3 ) == 0 )
+						month = 9;
+					if ( strncmp(v2, "Oct", 3 ) == 0 )
+						month = 10;
+					if ( strncmp(v2, "Nov", 3 ) == 0 )
+						month = 11;
+					if ( strncmp(v2, "Dec", 3 ) == 0 )
+						month = 12;
+					snprintf(buff, 1024, "date %02d%s%s%s%s",
+										month, v3, v4, v5, v7
+										);
 					pipe2 = popen(buff, "r" );
 					if ( !pipe2 )
 					{
-						snprintf(buff, 1024, "set Date fails: %s", strerror(errno ) );
-						syslog (LOG_DAEMON | LOG_NOTICE, buff );
+						snprintf(msgbuf, BUF_LEN_MAX, "set Date (%s) fails: %s", buff, strerror(errno ) );
+						syslog (LOG_DAEMON | LOG_NOTICE, msgbuf );
 					}
 					else
 					{
 						pclose(pipe2 );
-						syslog (LOG_DAEMON | LOG_NOTICE, buff );
+						snprintf(msgbuf, BUF_LEN_MAX, "set Date (%s) Ok", buff );
+						syslog (LOG_DAEMON | LOG_NOTICE, msgbuf );
+						rval = 0;
+					}
+				}
+				else
+				{
+					// Linux format: "date":"051411032021.26"
+					len = strlen(dbuff);
+					for ( i = 0 ; i <= len ; i++ )
+					{
+						if ( dbuff[i] == '"' )  
+						{
+							dbuff[i] = ' ';
+						}
+					}
+					sts = sscanf(dbuff, " %s : %s ", 
+									name, v1 );
+					if ( sts == 2 )
+					{
+						// Linux
+						snprintf(buff, 1024, "date -s \"%s\"", v1 );
+						pipe2 = popen(buff, "r" );
+						if ( !pipe2 )
+						{
+							snprintf(msgbuf, BUF_LEN_MAX, "set Date fails: %s \"%s\"", strerror(errno ), dbuff );
+							syslog (LOG_DAEMON | LOG_NOTICE, msgbuf, buff );
+						}
+						else
+						{
+							pclose(pipe2 );
+							syslog (LOG_DAEMON | LOG_NOTICE, buff );
+							rval = 0;
+						}
+					}
+					else
+					{
+						snprintf(msgbuf, BUF_LEN_MAX, "simMgrSyncTime: sscanf returns %d from input %s", sts, dbuff );
+						syslog (LOG_DAEMON | LOG_NOTICE, msgbuf );
 					}
 				}
 			}
 		}
 		pclose(pipe1 );
 	}
+	return ( rval );
 }
-*/
+
 int maxLog = 0;
 void
 simMgrRead(void )
