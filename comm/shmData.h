@@ -165,6 +165,9 @@ struct shmData
 	struct defibrillation defibrillation;
 	int manual_breath_ain;
 	int manual_breath_baseline;
+	int manual_breath_threashold;
+	int manual_breath_count;
+	int manual_breath_invert;
 };
 
 int cardiac_parse(const char *elem,  const char *value, struct cardiac *card );

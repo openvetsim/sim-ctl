@@ -97,6 +97,8 @@ int len;
 // **************************************************************
 void wavTrigger::trackPlaySolo(int chan, int trk) {
   
+  trackControl(chan, trk, TRK_LOOP_OFF);
+  trackControl(chan, trk, TRK_STOP);
   trackControl(chan, trk, TRK_PLAY_SOLO);
 }
 extern char *msgbuf;

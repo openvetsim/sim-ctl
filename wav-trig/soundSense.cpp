@@ -910,7 +910,8 @@ main(int argc, char *argv[] )
 	wav.trackGain(5, 0 );
 	wav.trackGain(113, 0 );
 	wav.trackGain(PULSE_TRACK, MAX_MAX_VOLUME );
-	wav.trackPlayPoly(0, 5);	// Bark
+	wav.stopAllTracks();
+	wav.trackPlaySolo(0, 5);	// Bark
 	while ( wav.getTracksPlaying() > 0 )
 	{
 		usleep(10000);
@@ -960,7 +961,7 @@ main(int argc, char *argv[] )
 
 			printf("%d\n", i );
 		}
-		wav.trackPlayPoly(0, 5);
+		wav.trackPlaySolo(0, 5); //Bark
 		allAirOff(0);
 		exit ( 0 );
 	}
@@ -1025,7 +1026,8 @@ main(int argc, char *argv[] )
 					usleep(10000);
 				}
 				wav.trackGain(5, 0 );
-				wav.trackPlayPoly(0, 5);	// Bark
+				wav.stopAllTracks();
+				wav.trackPlaySolo(0, 5);	// Bark
 				while ( wav.getTracksPlaying() > 0 )
 				{
 					usleep(10000);

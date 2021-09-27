@@ -63,6 +63,7 @@ int main(int argc, char *argv[])
 	int activeLoops;
 	int senseCount = 0;
 	opterr = 0;
+	int baselineLoopCount = 0;
 	
 	while (( c = getopt(argc, argv, "vDm" ) ) != -1 )
 	{
@@ -123,6 +124,9 @@ int main(int argc, char *argv[])
 	log_message("", msgbuf); 
 	shmData->manual_breath_baseline = baseline;
 	
+	shmData->manual_breath_threashold = 50;
+	shmData->manual_breath_count = senseCount;
+	
 	while ( 1 )
 	{
 		usleep(2000 );	
@@ -133,16 +137,15 @@ int main(int argc, char *argv[])
 			senseCount = 0;
 			continue;
 		}
-		if ( ain < baseline )
+		if ( ain < baseline ) 
 		{
 			baseline = ain - 10;
 			shmData->manual_breath_baseline = baseline;
 		}
-		// printf("%d\n", ain );
 		switch ( sense )
 		{
 			case 0:
-				if ( ain > (baseline + 50 ) )
+				if ( ain > (baseline + shmData->manual_breath_threashold ) )
 				{
 					senseCount++;
 					if ( senseCount >= 100 )
@@ -158,7 +161,7 @@ int main(int argc, char *argv[])
 				}
 				break;
 			case 1:
-				if ( ( ain < ( baseline+10 ) ) || ( activeLoops++ > 200 ) )
+				if ( (ain < ( baseline+10 )) || (activeLoops++ > 200) )
 				{
 					shmData->respiration.manual_breath = 1;
 					sprintf(msgbuf, "Breath: %d, Baseline %d", ain, baseline );
@@ -170,9 +173,14 @@ int main(int argc, char *argv[])
 				}
 				break;
 		}
-		if ( ain > baseline )
+		if ( (baselineLoopCount++ > 100) && (ain > (baseline+15)) )
 		{
 			baseline += 1;
+			baselineLoopCount = 0;
+			shmData->manual_breath_baseline = baseline;
 		}
+
+		shmData->manual_breath_threashold = 50;
+		shmData->manual_breath_count = senseCount;
 	}
 }

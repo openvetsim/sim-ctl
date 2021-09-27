@@ -367,12 +367,12 @@ simMgrSyncTime(void)
 	char name[128];
 	char v1[128];
 	char v2[128];
-	char v3[128];
-	char v4[128];
-	char v5[128];
-	char v6[128];
-	char v7[128];
+	int day;
+	int hour;
+	int min;
+	int sec;
 	int month;
+	int year;
 	int sts;
 	int rval = -1;
 	int len;
@@ -403,10 +403,22 @@ simMgrSyncTime(void)
 				dbuff[3] == 't' &&
 				dbuff[4] == 'e' )
 			{
+				// Convert quotes to spaces
+				len = strlen(dbuff);
+				for ( i = 0 ; i <= len ; i++ )
+				{
+					if ( dbuff[i] == '"' )  
+					{
+						dbuff[i] = ' ';
+					}
+				}
+					
 				// WinVetSim format: "date":"Fri May 14 11:00:11 2021" 
-				sts = sscanf(dbuff, "\"%s\":\"%s %s %s %s:%s:%s %s\"", 
-								name, v1, v2, v3, v4, v5, v6, v7 );
-				if ( sts == 7 )
+				sts = sscanf(dbuff, " %s : %s %s %d %d:%d:%d %d", 
+								name, v1, v2, &day, &hour, &min, &sec, &year );
+				snprintf(msgbuf, BUF_LEN_MAX, "sscanf returns %d from %s", sts, dbuff );
+				syslog (LOG_DAEMON | LOG_NOTICE, msgbuf );
+				if ( sts == 8 )
 				{
 					// WinVetSim
 					if ( strncmp(v2, "Jan", 3 ) == 0 )
@@ -433,8 +445,8 @@ simMgrSyncTime(void)
 						month = 11;
 					if ( strncmp(v2, "Dec", 3 ) == 0 )
 						month = 12;
-					snprintf(buff, 1024, "date %02d%s%s%s%s",
-										month, v3, v4, v5, v7
+					snprintf(buff, 1024, "date %02d%02d%02d%02d%04d",
+										month, day, hour, min, year
 										);
 					pipe2 = popen(buff, "r" );
 					if ( !pipe2 )
@@ -453,14 +465,6 @@ simMgrSyncTime(void)
 				else
 				{
 					// Linux format: "date":"051411032021.26"
-					len = strlen(dbuff);
-					for ( i = 0 ; i <= len ; i++ )
-					{
-						if ( dbuff[i] == '"' )  
-						{
-							dbuff[i] = ' ';
-						}
-					}
 					sts = sscanf(dbuff, " %s : %s ", 
 									name, v1 );
 					if ( sts == 2 )

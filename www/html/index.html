@@ -19,6 +19,8 @@
 	var lastXbit = 0;
 	var lastYbit = 0;
 	var lastZbit = 0;
+	var lastRbit = 0;
+	var lastBbit = 0;
 	var chartColor = "#999999";
 	var ctx = 0;
 	var canvas;
@@ -110,7 +112,7 @@
 				$('#yval').text(response.cpr.y );
 				$('#zval').text(response.cpr.z );
 				$('#simmgr').text(response.general.simMgrIPAddr );
-				updateChart(response.cpr );
+				updateChart(response );
 			},
 			error: function( jqXHR,  textStatus,  errorThrown){
 				console.log("error: "+textStatus+" : "+errorThrown );
@@ -140,8 +142,11 @@
 		return ( lastBit );
 	}
 	
-	function updateChart(cpr )
+	function updateChart(response )
 	{
+		cpr = response.cpr;
+		resp = response.respiration;
+		
 		ctx.beginPath();
 		ctx.fillStyle = chartColor;
 		ctx.fillRect(nextX, 0, 10, 199 );
@@ -149,6 +154,8 @@
 		var xbit = xyz_scale(cpr.x );
 		var ybit = xyz_scale(cpr.y );
 		var zbit = xyz_scale(cpr.z );
+		var rbit = resp_scale(resp.ain );
+		var bbit = resp_scale(resp.baseline );
 		
 		switch ( nextX % 3 )
 		{
@@ -170,6 +177,10 @@
 				lastYbit = drawBit(lastYbit, ybit, "#00FF00" );
 				break;
 		}
+		
+		lastRbit = drawBit(lastRbit, rbit, "#777700" );
+		lastBbit = drawBit(lastBbit, bbit, "#007777" );
+		
 		nextX = (nextX + 1) % 250;
 	}
 	
@@ -182,7 +193,13 @@
 		val4 = Math.round( val3 );
 		return (  val4 - 20 );
 	}
-
+	function resp_scale(val )
+	{
+		// Scale from range to bit, 0 to 200
+		// Expect a value of 0 to 800
+		val = parseInt(val ) / 4;
+		return (  val - 120 );
+	}
 </script>
     <style>
     body { background-color:#333; color:white;}
