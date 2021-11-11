@@ -124,7 +124,8 @@ int main(int argc, char *argv[])
 	log_message("", msgbuf); 
 	shmData->manual_breath_baseline = baseline;
 	
-	shmData->manual_breath_threashold = 50;
+#define DEFAULT_THREASHOLD 25
+	shmData->manual_breath_threashold = DEFAULT_THREASHOLD;
 	shmData->manual_breath_count = senseCount;
 	
 	while ( 1 )
@@ -148,7 +149,7 @@ int main(int argc, char *argv[])
 				if ( ain > (baseline + shmData->manual_breath_threashold ) )
 				{
 					senseCount++;
-					if ( senseCount >= 100 )
+					if ( senseCount >= 50 )
 					{
 						sense = 1;
 						shmData->respiration.active = 1;
@@ -180,7 +181,7 @@ int main(int argc, char *argv[])
 			shmData->manual_breath_baseline = baseline;
 		}
 
-		shmData->manual_breath_threashold = 50;
+		shmData->manual_breath_threashold = DEFAULT_THREASHOLD;
 		shmData->manual_breath_count = senseCount;
 	}
 }
