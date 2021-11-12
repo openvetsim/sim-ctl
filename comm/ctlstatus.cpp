@@ -30,6 +30,7 @@
 
 #include "simUtil.h"
 #include "shmData.h"
+#include "version.h"
 
 using namespace std;
 
@@ -135,6 +136,8 @@ sendStatus(void )
 	makejson(cout, "simMgrIPAddr", shmData->simMgrIPAddr );
 	cout << ",\n";
 	makejson(cout, "simMgrStatusPort", itoa(shmData->simMgrStatusPort) );
+	cout << ",\n";
+	makejson(cout, "simCtlVersion", SIMCTL_VERSION );
 	cout << "\n}\n";
 	
 	cout << "\n}\n";

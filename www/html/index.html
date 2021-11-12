@@ -112,6 +112,7 @@
 				$('#yval').text(response.cpr.y );
 				$('#zval').text(response.cpr.z );
 				$('#simmgr').text(response.general.simMgrIPAddr );
+				$('#simctlver').text(response.general.simCtlVersion );
 				updateChart(response );
 			},
 			error: function( jqXHR,  textStatus,  errorThrown){
@@ -324,6 +325,7 @@
 		<br>
 		
 	</div>
+	<div class='clear'>SimCtlVersion <span id='simctlver'></span></div>
 	<div class='clear'>SimMgr <span id='simmgr'></span></div>
 </div>
 
