@@ -335,6 +335,7 @@ int len;
 int i;
 float ver;
 char cc;
+int year;
 
   txbuf[0] = 0xf0;
   txbuf[1] = 0xaa;
@@ -343,15 +344,15 @@ char cc;
   txbuf[4] = 0x55;
   write(sioPort, txbuf, 6);
   len = getReturnData(buf, maxLen );
-  if ( buf[0] == 0x19 )
+  if ( len == 0x19 )
   {
 	  // From Wav Trigger
 	  boardType = BOARD_WAV_TRIGGER;
   }
-  else if ( buf[0] == 0x1b )
+  else if ( len == 0x1b || len == 23)
   {
 	  boardType = BOARD_TSUNAMI;
-	  i = sscanf(&buf[1], "Tsunami v%f%c (c)2017", &ver, &cc );
+	  i = sscanf(&buf[1], "Tsunami v%f%c (c)%d", &ver, &cc, &year );
 	  if ( cc == 'm' )
 	  {
 		  tsunamiMode = TSUNAMI_MONO;
@@ -364,7 +365,7 @@ char cc;
   else
   {
 	  boardType = BOARD_UNKNOWN;
-	  sprintf(&buf[1], "%s:", "--" );
+	  sprintf(&buf[1], "Unknown Board 0x%02x 0x%02x %s", buf[0], buf[1], &buf[3] );
   }
   sprintf( boardFWVersion, "%.*s", len-1, &buf[1] );
   return(len);

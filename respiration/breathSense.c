@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 				if ( ain > (baseline + shmData->manual_breath_threashold ) )
 				{
 					senseCount++;
-					if ( senseCount >= 50 )
+					if ( senseCount >= 100 )
 					{
 						sense = 1;
 						shmData->respiration.active = 1;

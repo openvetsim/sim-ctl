@@ -911,6 +911,8 @@ main(int argc, char *argv[] )
 	wav.trackGain(113, 0 );
 	wav.trackGain(PULSE_TRACK, MAX_MAX_VOLUME );
 	wav.stopAllTracks();
+	snprintf(msgbuf, 1024, "Initial Bark");
+	log_message("", msgbuf);	
 	wav.trackPlaySolo(0, 5);	// Bark
 	while ( wav.getTracksPlaying() > 0 )
 	{
@@ -961,6 +963,9 @@ main(int argc, char *argv[] )
 
 			printf("%d\n", i );
 		}
+		
+		snprintf(msgbuf, 1024, "Debug Bark");
+		log_message("", msgbuf);
 		wav.trackPlaySolo(0, 5); //Bark
 		allAirOff(0);
 		exit ( 0 );
@@ -1019,14 +1024,16 @@ main(int argc, char *argv[] )
 			if ( listenState == TRUE )
 			{
 				int savedVolume = current.masterGain;
-				wav.channelGain(0, MAX_VOLUME);
-				current.masterGain = MAX_VOLUME;
+				wav.channelGain(0, 0);
+				current.masterGain = 0;
 				while ( wav.getTracksPlaying() > 0 )
 				{
 					usleep(10000);
 				}
-				wav.trackGain(5, 0 );
+				//wav.trackGain(5, 0 );
 				wav.stopAllTracks();
+				snprintf(msgbuf, 1024, "Enter Listen State Bark");
+				log_message("", msgbuf);
 				wav.trackPlaySolo(0, 5);	// Bark
 				while ( wav.getTracksPlaying() > 0 )
 				{

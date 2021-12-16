@@ -338,10 +338,13 @@ simCtlComm::wait(void )
 			{
 				// Leave state as TRUE, to prevent additional barks.
 				// state = FALSE;
-				this->openListen(1);
+				
+				//close(commFD );
 				
 				sprintf(msgbuf, "Closed - Reopen Pipe" );
 				log_message("", msgbuf);
+				
+				this->openListen(1);
 			}
 		}
 		usleep(1000);
