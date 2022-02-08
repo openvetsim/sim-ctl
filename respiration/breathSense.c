@@ -166,8 +166,8 @@ int main(int argc, char *argv[])
 					(activeLoops++ > 100) )
 				{
 					shmData->respiration.manual_breath = 1;
-					sprintf(msgbuf, "Breath: %d, Baseline %d", ain, baseline );
-					log_message("", msgbuf); 
+					//sprintf(msgbuf, "Breath: %d, Baseline %d", ain, baseline );
+					//log_message("", msgbuf); 
 					sense = 0;
 					shmData->respiration.active = 0;
 					senseCount = 0;
