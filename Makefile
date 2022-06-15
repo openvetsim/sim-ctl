@@ -33,6 +33,13 @@ default:
 build:
 	@mkdir -p build
 
+update:
+	sudo service simctl stop
+	@for dir in $(SUBDIRS); do \
+		$(MAKE) $(MAKEFLAGS) -C $$dir  install; \
+		done
+	sudo service simctl start
+
 webconfig:
 	sudo cp initialization/nginx_default /etc/nginx/sites-enabled/default
 	sudo service nginx restart

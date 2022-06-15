@@ -22,6 +22,7 @@
 #define SIMCTLCOMM_H_
 
 #define SYNC_PORT	50200
+#define WVS_SYNC_PORT	40844
 #define LISTEN_ACTIVE	1
 #define LISTEN_INACTIVE	0
 

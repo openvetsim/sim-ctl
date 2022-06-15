@@ -1346,6 +1346,8 @@ rise_handler(int sig, siginfo_t *si, void *uc)
 	else
 	{
 		lungRise(TURN_OFF );
+		lungFall(TURN_ON);
+		usleep(10000);
 		lungFall(TURN_OFF );
 		riseOnOff = 0;
 		fallOnOff = 0;
@@ -1518,13 +1520,20 @@ lungFall(int control )
 void
 lungRise(int control )
 {
+	if ( control == TURN_ON )
+	{
+		shmData->respiration.riseState = 1;
+	}
+	else
+	{
+		shmData->respiration.riseState = 0;
+	}
+	if ( ! shmData->respiration.chest_movement  )
+	{
+		control = 0;
+	}
 	gpioPinSet(riseLPin, control );
 	gpioPinSet(riseRPin, control );
-
-	if ( control == TURN_ON )
-		shmData->respiration.riseState = 1;
-	else
-		shmData->respiration.riseState = 0;
 }
 /* Lung State:
 	0 - Idle. Waiting for Sync. When Sync Received:
@@ -1562,11 +1571,14 @@ runLung( void )
 		setLeftLungVolume(0 );	// Set volume only if a change occurred
 		setRightLungVolume(0 );	// Set volume only if a change occurred
 	}
-	if ( shmData->respiration.active && shmData->respiration.chest_movement )
+	if ( shmData->respiration.active ) // && shmData->respiration.chest_movement )
 	{
 		// Manual Respiration
 		lungFall(TURN_OFF );
-		lungRise(TURN_ON );
+		if ( shmData->respiration.chest_movement )
+		{
+			lungRise(TURN_ON );
+		}
 	}
 	else
 	{
