@@ -48,6 +48,14 @@
 		ctx.fillRect(0, 0, 250, 150 );
 		
 		getSample();
+		
+		$('#copy-tag').click(function() {
+			var $temp = $("<input>");
+			$("body").append($temp);
+			$temp.val($('#tag').html()).select();
+			document.execCommand("copy");
+			$temp.remove();
+		});
 	});
 
 	function getSample() {
@@ -327,6 +335,7 @@
 	</div>
 	<div class='clear'>SimCtlVersion <span id='simctlver'></span></div>
 	<div class='clear'>SimMgr <span id='simmgr'></span></div>
+	<div class='clear'><a href="javascript: void(2);" id="copy-tag">Copy RFID Tag</a></div>
 </div>
 
 
