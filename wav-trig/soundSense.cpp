@@ -691,7 +691,7 @@ main(int argc, char *argv[] )
 		cout << "eg: " << argv[ 0 ] << " tty1\n";
 		return (-1 );
 	}
-	while (( c = getopt(argc, argv, "mdt" ) ) != -1 )
+	while (( c = getopt(argc, argv, "smdt" ) ) != -1 )
 	{
 		switch ( c )
 		{
@@ -705,6 +705,10 @@ main(int argc, char *argv[] )
 			case 't':
 				monitor = 1;
 				debug = 2;
+				break;
+			case 's':
+				monitor = 0;
+				debug = 3;
 				break;
 		}
 	}
@@ -735,7 +739,7 @@ main(int argc, char *argv[] )
 		runMonitor();
 	}
 	initSoundList();
-	if ( debug )
+	if ( debug && debug < 3 )
 	{
 		printf("Show Sounds:\n" );
 		showSounds();
@@ -794,7 +798,11 @@ main(int argc, char *argv[] )
 			return (-1 );
 		}
 	}
-	checkTank();
+	
+	if ( debug < 3 )
+	{
+		checkTank();
+	}
 	if ( debug > 1 )
 	{
 		printf("Looking for WAV Trigger\n" );
@@ -802,7 +810,10 @@ main(int argc, char *argv[] )
 	// When booted, the SIO port may not yet be available. Try every 1 second for 20 sec.
 	for ( i = 0 ; i <  20 ; i++ )
 	{
-		checkTank();	// Start filling tank while waiting for WAV Trigger
+		if ( debug < 3 )
+		{
+			checkTank();	// Start filling tank while waiting for WAV Trigger
+		}
 		sfd = open(sioName, O_RDWR | O_NOCTTY | O_SYNC );
 		if ( sfd < 0 )
 		{
@@ -917,6 +928,14 @@ main(int argc, char *argv[] )
 	while ( wav.getTracksPlaying() > 0 )
 	{
 		usleep(10000);
+	}
+	if ( debug == 3 )
+	{
+		wav.trackPlaySolo(0, 1);	// PLay Cassiopeia
+		while ( wav.getTracksPlaying() > 0 )
+		{
+			usleep(10000);
+		}
 	}
 	if ( debug > 3 )
 	{
