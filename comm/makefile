@@ -40,7 +40,7 @@ simCtlComm.o: simCtlComm.cpp simCtlComm.h simUtil.h
 simController: simController.cpp simUtil.h shmData.h simUtil.o simParse.o
 	g++   $(CFLAGS) $(LDFLAGS) -o simController simController.cpp simUtil.o simParse.o
 
-ctlstatus.cgi: ctlstatus.cpp simUtil.h shmData.h simUtil.o
+ctlstatus.cgi: ctlstatus.cpp simUtil.h version.h shmData.h simUtil.o
 	g++   $(CFLAGS) $(LDFLAGS) -o ctlstatus.cgi ctlstatus.cpp simUtil.o
 
 install: $(targets) .FORCE $(cgiTargets)
