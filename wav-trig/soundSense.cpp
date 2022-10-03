@@ -533,6 +533,7 @@ FILE *tankPin;
 FILE *riseLPin;
 FILE *riseRPin;
 FILE *fallPin;
+FILE *pulsePin;
 
 int pumpOnOff;
 int riseOnOff;
@@ -751,7 +752,7 @@ main(int argc, char *argv[] )
 	riseLPin = gpioPinOpen(23, GPIO_OUTPUT );	// P8_13
 	riseRPin = gpioPinOpen(67, GPIO_OUTPUT );	// P8_8
 	fallPin = gpioPinOpen(68, GPIO_OUTPUT );	// P8_10
-//	pulsePin = gpioPinOpen(70, GPIO_OUTPUT );	// P8_45
+	pulsePin = gpioPinOpen(66, GPIO_OUTPUT );	// P8_7
 
 	allAirOff(1 );
 	if ( ( debug < 1 ) && ( ldebug == 0 ) )
@@ -976,7 +977,7 @@ main(int argc, char *argv[] )
 					gpioPinSet(riseLPin, TURN_OFF );
 					gpioPinSet(riseRPin, TURN_OFF );
 					gpioPinSet(fallPin, TURN_OFF );
-//					gpioPinSet(pulsePin, TURN_OFF );
+					gpioPinSet(pulsePin, TURN_OFF );
 					break;
 			}
 
@@ -1278,6 +1279,7 @@ runHeart ( void )
 			if ( heartLast != current.heartCount )
 			{
 				heartLast = current.heartCount;
+				gpioPinSet(pulsePin, TURN_ON );
 				//if ( shmData->auscultation.side != 0 )
 				//{
 					its.it_interval.tv_sec = 0;
@@ -1298,11 +1300,12 @@ runHeart ( void )
 			}
 			break;
 		case 1:
+			gpioPinSet(pulsePin, TURN_OFF );
 			if ( shmData->cardiac.pea == 0 )
 			{
 				//if ( shmData->auscultation.side != 0 )
 				//{
-//					gpioPinSet(pulsePin, TURN_OFF )
+					// gpioPinSet(pulsePin, TURN_OFF );
 					wav.trackPlayPoly(0, lubdub);
 					//snprintf(msgbuf, 1024, "runHeart: lub (%d) Gain is %d", lub, heartGain );
 					//log_message("", msgbuf );
