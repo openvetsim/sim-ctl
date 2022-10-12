@@ -18,4 +18,4 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SIMCTL_VERSION "1.0.2"
+#define SIMCTL_VERSION "1.0.3"
