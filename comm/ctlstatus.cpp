@@ -130,6 +130,10 @@ sendStatus(void )
 	makejson(cout, "y", itoa(shmData->cpr.y ) );
 	cout << ",\n";
 	makejson(cout, "z", itoa(shmData->cpr.z ) );
+	cout << ",\n";
+	makejson(cout, "distance", itoa(shmData->cpr.distance ) );
+	cout << ",\n";
+	makejson(cout, "maxDistance", itoa(shmData->cpr.maxDistance ) );
 	cout << "\n},\n";
 	
 	cout << " \"general\" : {\n";

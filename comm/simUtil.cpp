@@ -470,7 +470,7 @@ cleanString(char *strIn )
 	}
 }
 
-#define NO_I2C_LOCK	1
+//#define NO_I2C_LOCK	1
 int
 getI2CLock(void )
 {

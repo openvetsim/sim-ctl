@@ -38,9 +38,16 @@
 #include <signal.h>
 #include <string.h>
 
+extern "C" {
+#include <tof.h> // time of flight sensor library
+}
+
 #include "../comm/simCtlComm.h"
 #include "../comm/simUtil.h"
 #include "../comm/shmData.h"
+
+void startTOF(void);
+void runTOF(void);
 
 using namespace std;
 
@@ -81,6 +88,7 @@ int main(int argc, char *argv[])
 		log_message("", msgbuf );
 		exit ( -1 );
 	}
+	startTOF();
 	
 	cprI2C cprSense(0 );
 	if ( cprSense.present == 0 )
@@ -93,7 +101,6 @@ int main(int argc, char *argv[])
 		}
 		log_message("","cprSense Found Sensor" );
 	}
-	
 	
 	// shmData->present = cprSense.present;
 	newData = cprSense.readSensor();
@@ -182,3 +189,75 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+
+void
+startTOF(void)
+{
+	pid_t pid = fork(); /* Create a child process */
+
+	switch (pid) {
+		case -1: /* Error */
+			exit(1);
+			
+		case 0: /* Child process */
+			runTOF();
+			break;
+			
+		default: /* Parent process */
+			break;
+	}
+}
+
+void
+runTOF(void)
+{
+	int i;
+	int distance = 0;
+	int maxDistance = 0;
+	int model, revision;
+	char lmbuf[2048];
+	int sts;
+
+	sts = getI2CLock();
+	if ( sts )
+	{
+		printf("runTOF::readRegister: Could not get I2C Lock\n" );
+		exit ( -1 );
+	} 
+	i = tofInit(2, 0x29, 1); // set long range mode (up to 2m)
+	releaseI2CLock();
+	if (i != 1)
+	{
+		log_message("","No ToF sensor " );
+		exit ( 0 );
+	}
+	sts = getI2CLock();
+	if ( sts )
+	{
+		printf("runTOF::readRegister: Could not get I2C Lock\n" );
+		exit ( -1 );
+	} 
+	i = tofGetModel(&model, &revision);
+	releaseI2CLock();
+	sprintf(lmbuf, "VL53L0X: Model %02xh Revision %02xh", model, revision );
+	log_message("", msgbuf );
+	while ( 1 ) // read values 20 times a second
+	{
+		sts = getI2CLock();
+		if ( sts == 0 )
+		{
+			distance = tofReadDistance();
+			releaseI2CLock();
+			if (distance < 4096) // valid range?
+			{
+				if ( distance > maxDistance )
+				{
+					maxDistance = distance;
+					shmData->cpr.maxDistance = distance;
+				}
+				shmData->cpr.distance = distance;
+			}
+		}
+		usleep(50000); // 50ms
+	}
+} 

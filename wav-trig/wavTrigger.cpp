@@ -43,6 +43,8 @@
 
 wavTrigger::wavTrigger(void)
 {
+	sioPort = -1;
+	boardType = BOARD_UNKNOWN;
 }
 
 // **************************************************************
@@ -59,6 +61,14 @@ char txbuf[8];
 unsigned short vol;
 int len;
 
+  if ( sioPort < 0 )
+  {
+	  return;
+  }
+  if ( boardType == BOARD_TSUNAMI )
+  {
+	  channelGain(0, gain );
+  }
   txbuf[0] = 0xf0;
   txbuf[1] = 0xaa;
   txbuf[2] = 0x07;
@@ -73,13 +83,16 @@ int len;
 }
 
 // **************************************************************
-// For Tsunami, this will set the Volume for Channel 0
+// For Tsunami, this will set the Volume for Channel chan
 void wavTrigger::channelGain(int chan, int gain) {
 
 char txbuf[8];
 unsigned short vol;
 int len;
-
+  if ( sioPort < 0 )
+  {
+	  return;
+  }
   txbuf[0] = 0xf0;
   txbuf[1] = 0xaa;
 
@@ -153,6 +166,10 @@ void wavTrigger::trackControl(int chan, int trk, int code) {
 char txbuf[20];
 int len;
 int i;
+  if ( sioPort < 0 )
+  {
+	  return;
+  }
 	txbuf[0] = 0xf0;
 	txbuf[1] = 0xaa;
 	//txbuf[2] = 0x08;
@@ -190,6 +207,10 @@ int i;
 void wavTrigger::stopAllTracks(void) {
 
 char txbuf[10];
+  if ( sioPort < 0 )
+  {
+	  return;
+  }
 
   txbuf[0] = 0xf0;
   txbuf[1] = 0xaa;
@@ -203,6 +224,10 @@ char txbuf[10];
 void wavTrigger::resumeAllInSync(void) {
 
 char txbuf[10];
+  if ( sioPort < 0 )
+  {
+	  return;
+  }
 
   txbuf[0] = 0xf0;
   txbuf[1] = 0xaa;
@@ -217,6 +242,10 @@ void wavTrigger::trackGain(int trk, int gain) {
 
 char txbuf[10];
 unsigned short vol;
+  if ( sioPort < 0 )
+  {
+	  return;
+  }
 
   txbuf[0] = 0xf0;
   txbuf[1] = 0xaa;
@@ -236,6 +265,10 @@ void wavTrigger::trackFade(int trk, int gain, int time, bool stopFlag) {
 
 char txbuf[20];
 unsigned short vol;
+  if ( sioPort < 0 )
+  {
+	  return;
+  }
 
   txbuf[0] = 0xf0;
   txbuf[1] = 0xaa;
@@ -258,6 +291,10 @@ void wavTrigger::trackCrossFade(int chan, int trkFrom, int trkTo, int gain, int 
 
 char txbuf[20];
 unsigned short vol;
+  if ( sioPort < 0 )
+  {
+	  return;
+  }
 
   // Start the To track with -40 dB gain
   trackGain(trkTo, -40);
@@ -301,6 +338,10 @@ void wavTrigger::samplerateOffset(int offset) {
 
 char txbuf[8];
 unsigned short off;
+  if ( sioPort < 0 )
+  {
+	  return;
+  }
 
   txbuf[0] = 0xf0;
   txbuf[1] = 0xaa;
@@ -318,6 +359,10 @@ void wavTrigger::ampPower(int on) {
 
 char txbuf[8];
 unsigned short off;
+  if ( sioPort < 0 )
+  {
+	  return;
+  }
 
   txbuf[0] = 0xf0;
   txbuf[1] = 0xaa;
@@ -336,6 +381,10 @@ int i;
 float ver;
 char cc;
 int year;
+  if ( sioPort < 0 )
+  {
+	  return ( -1 );
+  }
 
   txbuf[0] = 0xf0;
   txbuf[1] = 0xaa;
@@ -375,6 +424,10 @@ int year;
 int wavTrigger::getSysInfo(char *buf, int maxLen) {
 char txbuf[8];
 unsigned short off;
+  if ( sioPort < 0 )
+  {
+	  return ( -1 );
+  }
 
   txbuf[0] = 0xf0;
   txbuf[1] = 0xaa;
@@ -389,6 +442,10 @@ unsigned short off;
 int wavTrigger::getStatus(char *buf, int maxLen) {
 char txbuf[8];
 unsigned short off;
+  if ( sioPort < 0 )
+  {
+	  return ( -1 );
+  }
 
   txbuf[0] = 0xf0;
   txbuf[1] = 0xaa;
@@ -407,6 +464,10 @@ int wavTrigger::getReturnData(char *buf, int maxLen) {
 	int len;
 	int rec = 0;
 	int loops = 0;
+  if ( sioPort < 0 )
+  {
+	  return ( -1 );
+  }
 	memset(buf, 0, maxLen );
 	// Read input until we get a Start (0xF0, 0xAA)
 	for ( i = 0 ; i < ( maxLen + 4 ) ;  loops++ )

@@ -3,7 +3,7 @@
  *
  * This file is part of the sim-ctl distribution (https://github.com/OpenVetSimDevelopers/sim-ctl).
  * 
- * Copyright (c) 2019 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
+ * Copyright (c) 2019-2023 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
  * 
  * This program is free software: you can redistribute it and/or modify  
  * it under the terms of the GNU General Public License as published by  
@@ -55,6 +55,9 @@
 #include "../comm/shmData.h"
 
 wavTrigger wav;
+wavTrigger wav2;
+wavTrigger *wavPulse;
+
 simCtlComm comm;
 
 struct shmData *shmData;
@@ -102,7 +105,7 @@ using namespace std;
 
 #define MAX_BUF	255
 
-char sioName[MAX_BUF];
+char sioName[2][MAX_BUF];
 
 int debug = 0;
 int ldebug = 0;
@@ -595,6 +598,7 @@ int
 main(int argc, char *argv[] )
 {
 	int sfd;
+	int sfd2;
 	char buffer[MAX_BUF+1];
 	int i;
 	int c;
@@ -608,7 +612,7 @@ main(int argc, char *argv[] )
 	{
 		cout << "Usage:\n";
 		cout << argv[ 0 ] << " [-d] [-m][-t] <tty port>\n";
-		cout << "eg: " << argv[ 0 ] << " tty1\n";
+		cout << "eg: " << argv[ 0 ] << " tty2 tty5\n";
 		return (-1 );
 	}
 	while (( c = getopt(argc, argv, "smdt" ) ) != -1 )
@@ -632,22 +636,30 @@ main(int argc, char *argv[] )
 				break;
 		}
 	}
+	sioName[0][0] = 0;
+	sioName[1][0] = 0;
 	
 	if ( monitor == 0 )
 	{
+		
 		if ( optind < argc )
 		{
-			snprintf(sioName, MAX_BUF, "/dev/%s", argv[optind] );
+			snprintf(sioName[0], MAX_BUF, "/dev/%s", argv[optind] );
+			optind++;
+			if ( optind < argc )
+			{
+				snprintf(sioName[1], MAX_BUF, "/dev/%s", argv[optind] );
+			}
 		}
 		else
 		{
 			cout << "Usage:\n";
-			cout << argv[ 0 ] << " [-d] [-m] <tty port>\n";
+			cout << argv[ 0 ] << " [-d] [-m] <tty port 1> [tty port]\n";
 			cout << "eg: " << argv[ 0 ] << " tty1\n";
 			return (-1 );
 		}
 	}
-	printf("Debug %d, Monitor %d, sio '%s'\n", debug, monitor, sioName );
+	printf("Debug %d, Monitor %d, sio '%s' '%s'\n", debug, monitor, sioName[0], sioName[1] );
 	if ( monitor )
 	{
 		sts = initSHM(SHM_OPEN );
@@ -734,7 +746,7 @@ main(int argc, char *argv[] )
 		{
 			checkTank();	// Start filling tank while waiting for WAV Trigger
 		}
-		sfd = open(sioName, O_RDWR | O_NOCTTY | O_SYNC );
+		sfd = open(sioName[0], O_RDWR | O_NOCTTY | O_SYNC );
 		if ( sfd < 0 )
 		{
 			if ( debug > 1 )
@@ -814,8 +826,41 @@ main(int argc, char *argv[] )
 			snprintf(msgbuf, 1024, "Sys Info: Len %d Voices %d Tracks %d", val, buffer[1], buffer[2] );
 			log_message("", msgbuf);
 		}
+		if ( wav.boardType == BOARD_WAV_TRIGGER )
+		{
+			wavPulse = &wav2;
+			// If Wav Trigger (not Tsunami), then we try to open the second port
+			if ( strlen(sioName[1]) > 0 )
+			{
+				sfd2 = open(sioName[1], O_RDWR | O_NOCTTY | O_SYNC );
+				if ( sfd2 < 0  )
+				{
+					// Failed - No second board
+					snprintf(msgbuf, 1024, "tty failed for second Wav Trigger on %s", sioName[1] );
+					log_message("", msgbuf);
+					sfd2 = 0;
+				}
+				else
+				{
+					setTermios(sfd2, B57600); // WAV Trigger defaults to 57600
+					wav2.start(sfd );
+					usleep(500000);
+					val = wav2.getVersion(buffer, MAX_BUF );
+					snprintf(msgbuf, 1024, "WAV2 Trigger Version: Len %d String %.*s", val, val-1, &buffer[1] );
+					log_message("", msgbuf);
+					val = wav2.getSysInfo(buffer, MAX_BUF );
+					snprintf(msgbuf, 1024, "Sys Info: Len %d Voices %d Tracks %d", val, buffer[1], buffer[2] );
+					log_message("", msgbuf);
+				}
+			}
+		}
+		else
+		{
+			wavPulse = &wav;
+		}
 		if ( wav.boardType == BOARD_TSUNAMI && wav.tsunamiMode != TSUNAMI_MONO )
 		{
+			sfd2 = sfd; // Send all commands to Tsunami
 			if ( debug > 1 )
 			{
 				printf("Tsunami is running Stereo Mode. Must be Mono\n" );
@@ -827,21 +872,31 @@ main(int argc, char *argv[] )
 			}
 		}
 	}
-	wav.show();
+	//wav.show();
 	wav.ampPower(0 );
 	wav.stopAllTracks();
-	//wav.masterGain(0);
-	wav.channelGain(0, 0 );
+	wav.masterGain(0);
+	if ( sfd2 )
+	{
+		wavPulse->ampPower(0 );
+		wavPulse->stopAllTracks();
+		wavPulse->masterGain(0);
+	}
 	current.masterGain = 0;
 	
-	for ( i = 0 ; i < 8 ; i++ )
+	if ( wav.boardType == BOARD_TSUNAMI )
 	{
-		wav.channelGain(i,0 );
+		for ( i = 0 ; i < 8 ; i++ )
+		{
+			wav.channelGain(i,0 );
+		}
 	}
-	wav.trackGain(5, 0 );
-	wav.trackGain(113, 0 );
-	wav.trackGain(PULSE_TRACK, MAX_MAX_VOLUME );
+	wavPulse->trackGain(PULSE_TRACK, MAX_MAX_VOLUME );
+	wav.trackGain(113, 0 );  // Track 113 is Sinus_120
+	wav.trackGain(5, 0 );  // Track 5 is Bark
 	wav.stopAllTracks();
+	wavPulse->stopAllTracks();
+
 	snprintf(msgbuf, 1024, "Initial Bark");
 	log_message("", msgbuf);	
 	wav.trackPlaySolo(0, 5);	// Bark
@@ -851,7 +906,7 @@ main(int argc, char *argv[] )
 	}
 	if ( debug == 3 )
 	{
-		wav.trackPlaySolo(0, 1);	// PLay Cassiopeia
+		wav.trackPlaySolo(0, 1);	// Play Cassiopeia
 		while ( wav.getTracksPlaying() > 0 )
 		{
 			usleep(10000);
@@ -863,20 +918,21 @@ main(int argc, char *argv[] )
 		printf("Setting Pulse Volumes to %d\n", val );
 		for ( i = 2 ; i < 6 ; i++ )
 		{
-			wav.channelGain(i, val );
+			wavPulse->channelGain(i, val );
 		}
 		for ( i = 0 ; i < 2000 ; i++ )
 		{
-			wav.trackPlayPoly(0, 113); // Pulse
-			wav.trackPlayPoly(2, PULSE_TRACK); // Pulse
-			wav.trackPlayPoly(3, PULSE_TRACK); // Pulse
-			wav.trackPlayPoly(4, PULSE_TRACK); // Pulse
-			wav.trackPlayPoly(5, PULSE_TRACK); // Pulse
+			wavPulse->trackPlayPoly(0, 113); // Pulse
+			wavPulse->trackPlayPoly(2, PULSE_TRACK); // Pulse
+			wavPulse->trackPlayPoly(3, PULSE_TRACK); // Pulse
+			wavPulse->trackPlayPoly(4, PULSE_TRACK); // Pulse
+			wavPulse->trackPlayPoly(5, PULSE_TRACK); // Pulse
 			usleep(100000);
-			while ( wav.getTracksPlaying() > 0 )
+			while ( wavPulse->getTracksPlaying() > 0 )
 			{
 				usleep(10000);
 			}
+		
 			switch ( i % 5 )
 			{
 				case 0:
@@ -917,8 +973,7 @@ main(int argc, char *argv[] )
 	current.rightLungGain = -65;
 	current.heartGain = -65;
 	
-	wav.trackGain(PULSE_TRACK, MAX_MAX_VOLUME );
-
+	wavPulse->trackGain(PULSE_TRACK, MAX_MAX_VOLUME );
 	pthread_create (&threadInfo1, NULL, &sync_thread,(void *) NULL );
 	
 	// Main loop monitors the volumes and keeps them set
@@ -1741,12 +1796,12 @@ void doPulse(void )
 			pulseVolume = getPulseVolume(shmData->pulse.right_dorsal, shmData->cardiac.right_dorsal_pulse_strength );
 			pulseVolume = pulseVolume - 25;
 			shmData->pulse.volume[PULSE_RIGHT_DORSAL] = pulseVolume;
-			wav.channelGain(5, pulseVolume );
-			wav.trackPlayPoly(5, PULSE_TRACK);
+			wavPulse->channelGain(5, pulseVolume );
+			wavPulse->trackPlayPoly(5, PULSE_TRACK);
 	}
 	else
 	{
-		wav.channelGain(5, PULSE_VOLUME_OFF );
+		wavPulse->channelGain(5, PULSE_VOLUME_OFF );
 		shmData->pulse.volume[PULSE_RIGHT_DORSAL] = PULSE_VOLUME_OFF;
 	}
 	if ( shmData->pulse.left_dorsal && shmData->cardiac.left_dorsal_pulse_strength > 0 )
@@ -1754,12 +1809,12 @@ void doPulse(void )
 			pulseVolume = getPulseVolume(shmData->pulse.left_dorsal, shmData->cardiac.left_dorsal_pulse_strength );
 			pulseVolume = pulseVolume - 25;
 			shmData->pulse.volume[PULSE_LEFT_DORSAL] = pulseVolume;
-			wav.channelGain(4, pulseVolume );
-			wav.trackPlayPoly(4, PULSE_TRACK);
+			wavPulse->channelGain(4, pulseVolume );
+			wavPulse->trackPlayPoly(4, PULSE_TRACK);
 	}
 	else
 	{
-		wav.channelGain(4, PULSE_VOLUME_OFF );
+		wavPulse->channelGain(4, PULSE_VOLUME_OFF );
 		shmData->pulse.volume[PULSE_LEFT_DORSAL] = PULSE_VOLUME_OFF;
 	}
 	if ( shmData->pulse.right_femoral && shmData->cardiac.right_femoral_pulse_strength > 0 )
@@ -1767,12 +1822,12 @@ void doPulse(void )
 			pulseVolume = getPulseVolume(shmData->pulse.right_femoral, shmData->cardiac.right_femoral_pulse_strength );
 			pulseVolume = pulseVolume - 25;
 			shmData->pulse.volume[PULSE_RIGHT_FEMORAL] = pulseVolume;
-			wav.channelGain(3, pulseVolume );
-			wav.trackPlayPoly(3, PULSE_TRACK);
+			wavPulse->channelGain(3, pulseVolume );
+			wavPulse->trackPlayPoly(3, PULSE_TRACK);
 	}
 	else
 	{
-		wav.channelGain(3, PULSE_VOLUME_OFF );
+		wavPulse->channelGain(3, PULSE_VOLUME_OFF );
 		shmData->pulse.volume[PULSE_RIGHT_FEMORAL] = PULSE_VOLUME_OFF;
 	}
 	if ( shmData->pulse.left_femoral && shmData->cardiac.left_femoral_pulse_strength > 0 )
@@ -1780,12 +1835,12 @@ void doPulse(void )
 			pulseVolume = getPulseVolume(shmData->pulse.left_femoral, shmData->cardiac.left_femoral_pulse_strength );
 			pulseVolume = pulseVolume - 25;
 			shmData->pulse.volume[PULSE_LEFT_FEMORAL] = pulseVolume;
-			wav.channelGain(2, pulseVolume );
-			wav.trackPlayPoly(2, PULSE_TRACK);
+			wavPulse->channelGain(2, pulseVolume );
+			wavPulse->trackPlayPoly(2, PULSE_TRACK);
 	}
 	else
 	{
-		wav.channelGain(2, PULSE_VOLUME_OFF );
+		wavPulse->channelGain(2, PULSE_VOLUME_OFF );
 		shmData->pulse.volume[PULSE_LEFT_FEMORAL] = PULSE_VOLUME_OFF;
 	}
 	/*
@@ -1872,8 +1927,8 @@ void doPulse(void )
 		}
 		if ( pulseVolume > PULSE_VOLUME_OFF )
 		{
-			wav.channelGain(pulseChannel, pulseVolume );
-			wav.trackPlayPoly(pulseChannel, PULSE_TRACK);
+			wavPulse->channelGain(pulseChannel, pulseVolume );
+			wavPulse->trackPlayPoly(pulseChannel, PULSE_TRACK);
 		}
 	}
 	*/

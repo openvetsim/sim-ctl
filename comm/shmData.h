@@ -140,6 +140,8 @@ struct cpr
 	int x;
 	int y;
 	int z;
+	int distance;		// distance in mm, used for 
+	int maxDistance;	// Fully extended distance
 };
 
 struct defibrillation

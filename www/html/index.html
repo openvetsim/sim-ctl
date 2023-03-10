@@ -21,6 +21,8 @@
 	var lastZbit = 0;
 	var lastRbit = 0;
 	var lastBbit = 0;
+	var lastDbit = 0;
+	var lastMbit = 0;
 	var chartColor = "#999999";
 	var ctx = 0;
 	var canvas;
@@ -119,6 +121,8 @@
 				$('#xval').text(response.cpr.x );
 				$('#yval').text(response.cpr.y );
 				$('#zval').text(response.cpr.z );
+				$('#distance').text(response.cpr.distance );
+				$('#maxDistance').text(response.cpr.maxDistance );
 				$('#simmgr').text(response.general.simMgrIPAddr );
 				$('#simctlver').text(response.general.simCtlVersion );
 				updateChart(response );
@@ -165,7 +169,9 @@
 		var zbit = xyz_scale(cpr.z );
 		var rbit = resp_scale(resp.ain );
 		var bbit = resp_scale(resp.baseline );
-		
+		var dbit = distance_scale(cpr.distance );
+		var mbit = distance_scale(cpr.maxDistance );
+		//console.log (xbit,ybit,zbit,rbit,bbit,dbit,mbit);
 		switch ( nextX % 3 )
 		{
 			case 0:
@@ -189,7 +195,8 @@
 		
 		lastRbit = drawBit(lastRbit, rbit, "#777700" );
 		lastBbit = drawBit(lastBbit, bbit, "#007777" );
-		
+		lastDbit = drawBit(lastDbit, dbit, "#DDDD70" );
+		lastMbit = drawBit(lastMbit, mbit, "#DDDD70" );
 		nextX = (nextX + 1) % 250;
 	}
 	
@@ -208,6 +215,14 @@
 		// Expect a value of 0 to 800
 		val = parseInt(val ) / 5;
 		return (  val - 85 );
+	}
+	function distance_scale(val )
+	{
+		// Scale from range to bit, 150 to 0
+		// Expect a value of       0 to 1600
+		rval = parseInt(Math.abs((parseInt(val )/11)-148));
+		//console.log(rval, val );
+		return (  rval );
 	}
 </script>
     <style>
@@ -326,13 +341,16 @@
 		<h4>CPR Trace</h4><div>
 		X <p class='val' id='xval'></p>
 		Y <p class='val' id='yval'></p>
-		Z <p class='val' id='zval'></p>
+		Z <p class='val' id='zval'></p><br>
+		Distance <p class='val' id='distance'></p>
+		Max <p class='val' id='maxDistance'></p>
 		</div>
 		<canvas id="cprTrace" class="vs-trace" width="250" height="150"></canvas>
 		<p><span id="ain0">0</span></p>
 		<br>
 		
 	</div>
+
 	<div class='clear'>SimCtlVersion <span id='simctlver'></span></div>
 	<div class='clear'>SimMgr <span id='simmgr'></span></div>
 	<div class='clear'><a href="javascript: void(2);" id="copy-tag">Copy RFID Tag</a></div>
