@@ -38,16 +38,18 @@
 #include <signal.h>
 #include <string.h>
 
+#ifdef SUPPORT_TOF
 extern "C" {
 #include <tof.h> // time of flight sensor library
 }
+void startTOF(void);
+void runTOF(void);
+#endif
 
 #include "../comm/simCtlComm.h"
 #include "../comm/simUtil.h"
 #include "../comm/shmData.h"
 
-void startTOF(void);
-void runTOF(void);
 
 using namespace std;
 
@@ -88,8 +90,9 @@ int main(int argc, char *argv[])
 		log_message("", msgbuf );
 		exit ( -1 );
 	}
+#ifdef SUPPORT_TOF
 	startTOF();
-	
+#endif
 	cprI2C cprSense(0 );
 	if ( cprSense.present == 0 )
 	{
@@ -190,6 +193,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+#ifdef SUPPORT_TOF
 void
 startTOF(void)
 {
@@ -261,3 +265,4 @@ runTOF(void)
 		usleep(50000); // 50ms
 	}
 } 
+#endif
