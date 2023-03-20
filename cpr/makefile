@@ -18,7 +18,8 @@
 installTargets=cprScan 
 targets=$(installTargets)
 CFLAGS=-pthread -Wall -g -ggdb
-LDFLAGS=-lrt -ltof
+LDFLAGS=-lrt 
+# -ltof
 
 default:	$(targets)
 
