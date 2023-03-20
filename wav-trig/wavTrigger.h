@@ -111,7 +111,7 @@ public:
 	wavTrigger(void );
 	virtual ~wavTrigger();
 	
-	void start(int sioPort);
+	void start(int sioPort, int index);
 	void masterGain(int gain);
 	void channelGain(int chan, int gain);
 	void stopAllTracks(void);
@@ -136,6 +136,7 @@ public:
 	int getTrackStatus(int trk); // Returns 1 if the track is playing, else 0. Gathers track status and returns the status of the indicated track
 	int checkTrack(int trk ); // Checks the already gathered status and returns the status for the track
 	void show(void );
+	int wavIndex;
 	
 	int boardType;
 	char boardFWVersion[32];

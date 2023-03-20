@@ -44,12 +44,14 @@
 wavTrigger::wavTrigger(void)
 {
 	sioPort = -1;
+	wavIndex = -1;
 	boardType = BOARD_UNKNOWN;
 }
 
 // **************************************************************
-void wavTrigger::start(int port ) {
+void wavTrigger::start(int port, int index ) {
   sioPort = port;
+  wavIndex = index;
   boardType = BOARD_UNKNOWN;
 }
 
@@ -194,11 +196,13 @@ int i;
 		txbuf[9] = 0x55;
 		len = 10;
 	}
-	for ( i = 0 ; i < len ; i++ )
-	{
-		printf(" 0x%02x ", txbuf[i] );
-	}
-	printf("\n" );
+	// printf("WAV %d Trk Control: %d %d %d: ",
+		// wavIndex, chan, trk, code );
+	// for ( i = 0 ; i < len ; i++ )
+	// {
+		// printf(" 0x%02x ", txbuf[i] );
+	// }
+	// printf("\n" );
 	
   write(sioPort, txbuf, len);
 }
@@ -393,7 +397,8 @@ int year;
   txbuf[4] = 0x55;
   write(sioPort, txbuf, 6);
   len = getReturnData(buf, maxLen );
-  if ( len == 0x19 )
+  
+  if ( len == 0x19 || len == 21)
   {
 	  // From Wav Trigger
 	  boardType = BOARD_WAV_TRIGGER;

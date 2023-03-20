@@ -148,15 +148,17 @@ setTermios(int fd, int speed )
 }
 
 #define MIN_VOLUME		-70
-#define MAX_VOLUME		10
-#define MAX_MAX_VOLUME	10
+#define MAX_VOLUME		5
+#define MAX_MAX_VOLUME	8
 
 #define PULSE_VOLUME_OFF		MIN_VOLUME
 #define PULSE_VOLUME_VERY_SOFT	MAX_VOLUME // -20
 #define PULSE_VOLUME_SOFT		MAX_VOLUME // -10
-#define PULSE_VOLUME_ON			MAX_VOLUME
+#define PULSE_VOLUME_ON			5
 
-#define PULSE_TRACK		103
+#define PULSE_TRACK				103
+#define PULSE_TRACK_LEFT		104
+#define PULSE_TRACK_RIGHT		105
 
 int getPulseVolume(int pressure, int strength );
 void doPulse(void);
@@ -551,7 +553,6 @@ checkTank()
 }
 void allAirOff(int quiet )
 {
-	if ( debug ) printf("ALL OFF\n" );
 	gpioPinSet(tankPin, TURN_OFF );
 	gpioPinSet(riseLPin, TURN_OFF );
 	gpioPinSet(riseRPin, TURN_OFF );
@@ -608,14 +609,11 @@ main(int argc, char *argv[] )
 	int changed;
 	int listenState = FALSE;
 	
-	if ( argc < 2 )
-	{
-		cout << "Usage:\n";
-		cout << argv[ 0 ] << " [-d] [-m][-t] <tty port>\n";
-		cout << "eg: " << argv[ 0 ] << " tty2 tty5\n";
-		return (-1 );
-	}
-	while (( c = getopt(argc, argv, "smdt" ) ) != -1 )
+	//if ( argc < 2 )
+	//{
+
+	//}
+	while (( c = getopt(argc, argv, "smdth" ) ) != -1 )
 	{
 		switch ( c )
 		{
@@ -634,10 +632,15 @@ main(int argc, char *argv[] )
 				monitor = 0;
 				debug = 3;
 				break;
+			case 'h':
+				cout << "Usage:\n";
+				cout << argv[ 0 ] << " [-d] [-m][-t] [tty port 1] [tty port 2]\n";
+				cout << "eg: " << argv[ 0 ] << " ttyO2 ttyO4\n";
+				return (0 );
 		}
 	}
-	sioName[0][0] = 0;
-	sioName[1][0] = 0;
+	sprintf(sioName[0], "/dev/ttyO2" );
+	sprintf(sioName[1], "/dev/ttyO4" );
 	
 	if ( monitor == 0 )
 	{
@@ -650,13 +653,6 @@ main(int argc, char *argv[] )
 			{
 				snprintf(sioName[1], MAX_BUF, "/dev/%s", argv[optind] );
 			}
-		}
-		else
-		{
-			cout << "Usage:\n";
-			cout << argv[ 0 ] << " [-d] [-m] <tty port 1> [tty port]\n";
-			cout << "eg: " << argv[ 0 ] << " tty1\n";
-			return (-1 );
 		}
 	}
 	printf("Debug %d, Monitor %d, sio '%s' '%s'\n", debug, monitor, sioName[0], sioName[1] );
@@ -784,7 +780,7 @@ main(int argc, char *argv[] )
 			printf("Start Wav\n" );
 		}
 	}
-	wav.start(sfd );
+	wav.start(sfd, 0 );
 	usleep(500000);
 	
 	if ( debug < 4 )
@@ -807,9 +803,9 @@ main(int argc, char *argv[] )
 		}
 		val = wav.getVersion(buffer, MAX_BUF );
 		
-		if ( debug > 1 )
+		if ( debug > 0 )
 		{
-			printf("WAV Trigger Version: Len %d String %.*s\n", val, val-1, &buffer[1] );
+			printf("WAV Trigger Version: Len %d String '%.*s'\n", val, val-1, &buffer[1] );
 		}
 		else
 		{
@@ -817,7 +813,7 @@ main(int argc, char *argv[] )
 			log_message("", msgbuf);
 		}
 		val = wav.getSysInfo(buffer, MAX_BUF );
-		if ( debug > 1 )
+		if ( debug > 0 )
 		{
 			printf("Sys Info: Len %d Voices %d Tracks %d\n", val, buffer[1], buffer[2] );
 		}
@@ -843,7 +839,7 @@ main(int argc, char *argv[] )
 				else
 				{
 					setTermios(sfd2, B57600); // WAV Trigger defaults to 57600
-					wav2.start(sfd );
+					wav2.start(sfd2, 1 );
 					usleep(500000);
 					val = wav2.getVersion(buffer, MAX_BUF );
 					snprintf(msgbuf, 1024, "WAV2 Trigger Version: Len %d String %.*s", val, val-1, &buffer[1] );
@@ -861,7 +857,7 @@ main(int argc, char *argv[] )
 		if ( wav.boardType == BOARD_TSUNAMI && wav.tsunamiMode != TSUNAMI_MONO )
 		{
 			sfd2 = sfd; // Send all commands to Tsunami
-			if ( debug > 1 )
+			if ( debug > 0 )
 			{
 				printf("Tsunami is running Stereo Mode. Must be Mono\n" );
 			}
@@ -878,7 +874,7 @@ main(int argc, char *argv[] )
 	wav.masterGain(0);
 	if ( sfd2 )
 	{
-		wavPulse->ampPower(0 );
+		wavPulse->ampPower(1 );
 		wavPulse->stopAllTracks();
 		wavPulse->masterGain(0);
 	}
@@ -1790,7 +1786,7 @@ void doPulse(void )
 	{
 		return;
 	}
-	
+#if 0	
 	if ( shmData->pulse.right_dorsal && shmData->cardiac.right_dorsal_pulse_strength > 0 )
 	{
 			pulseVolume = getPulseVolume(shmData->pulse.right_dorsal, shmData->cardiac.right_dorsal_pulse_strength );
@@ -1817,31 +1813,64 @@ void doPulse(void )
 		wavPulse->channelGain(4, PULSE_VOLUME_OFF );
 		shmData->pulse.volume[PULSE_LEFT_DORSAL] = PULSE_VOLUME_OFF;
 	}
-	if ( shmData->pulse.right_femoral && shmData->cardiac.right_femoral_pulse_strength > 0 )
+#endif
+	if ( wavPulse->boardType == BOARD_TSUNAMI )
 	{
+		if ( shmData->pulse.right_femoral && shmData->cardiac.right_femoral_pulse_strength > 0 )
+		{
 			pulseVolume = getPulseVolume(shmData->pulse.right_femoral, shmData->cardiac.right_femoral_pulse_strength );
 			pulseVolume = pulseVolume - 25;
 			shmData->pulse.volume[PULSE_RIGHT_FEMORAL] = pulseVolume;
 			wavPulse->channelGain(3, pulseVolume );
 			wavPulse->trackPlayPoly(3, PULSE_TRACK);
-	}
-	else
-	{
-		wavPulse->channelGain(3, PULSE_VOLUME_OFF );
-		shmData->pulse.volume[PULSE_RIGHT_FEMORAL] = PULSE_VOLUME_OFF;
-	}
-	if ( shmData->pulse.left_femoral && shmData->cardiac.left_femoral_pulse_strength > 0 )
-	{
+		}
+		else
+		{
+			wavPulse->channelGain(3, PULSE_VOLUME_OFF );
+			shmData->pulse.volume[PULSE_RIGHT_FEMORAL] = PULSE_VOLUME_OFF;
+		}
+		if ( shmData->pulse.left_femoral && shmData->cardiac.left_femoral_pulse_strength > 0 )
+		{
 			pulseVolume = getPulseVolume(shmData->pulse.left_femoral, shmData->cardiac.left_femoral_pulse_strength );
 			pulseVolume = pulseVolume - 25;
 			shmData->pulse.volume[PULSE_LEFT_FEMORAL] = pulseVolume;
 			wavPulse->channelGain(2, pulseVolume );
 			wavPulse->trackPlayPoly(2, PULSE_TRACK);
+		}
+		else
+		{
+			wavPulse->channelGain(2, PULSE_VOLUME_OFF );
+			shmData->pulse.volume[PULSE_LEFT_FEMORAL] = PULSE_VOLUME_OFF;
+		}
 	}
 	else
 	{
-		wavPulse->channelGain(2, PULSE_VOLUME_OFF );
-		shmData->pulse.volume[PULSE_LEFT_FEMORAL] = PULSE_VOLUME_OFF;
+		// For WAV Trigger board.
+		if ( shmData->pulse.right_femoral && shmData->cardiac.right_femoral_pulse_strength > 0 ) 
+		{
+			pulseVolume = getPulseVolume(shmData->pulse.right_femoral, shmData->cardiac.right_femoral_pulse_strength );
+			pulseVolume = pulseVolume - 25;
+			shmData->pulse.volume[PULSE_RIGHT_FEMORAL] = pulseVolume;
+			wavPulse->trackGain(PULSE_TRACK_RIGHT, pulseVolume );
+			wavPulse->trackPlayPoly(0, PULSE_TRACK_RIGHT);
+		}
+		else
+		{
+			wavPulse->trackGain(PULSE_TRACK_RIGHT, PULSE_VOLUME_OFF );
+		}
+		if ( shmData->pulse.left_femoral && shmData->cardiac.left_femoral_pulse_strength > 0 )
+		{
+			pulseVolume = getPulseVolume(shmData->pulse.left_femoral, shmData->cardiac.left_femoral_pulse_strength );
+			pulseVolume = pulseVolume - 25;
+			shmData->pulse.volume[PULSE_LEFT_FEMORAL] = pulseVolume;
+			wavPulse->trackGain(PULSE_TRACK_LEFT, pulseVolume );
+			wavPulse->trackPlayPoly(0, PULSE_TRACK_LEFT);
+		}
+		else
+		{
+			wavPulse->trackGain(PULSE_TRACK_LEFT, PULSE_VOLUME_OFF );
+		}
+		wavPulse->masterGain(PULSE_VOLUME_ON );
 	}
 	/*
 	switch ( shmData->pulse.position )

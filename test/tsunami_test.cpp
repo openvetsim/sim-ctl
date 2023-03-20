@@ -144,7 +144,7 @@ main(int argc, char *argv[] )
 	saveTTY(sfd );
 	setTermios(sfd, B57600); // WAV Trigger defaults to 57600
 	
-	wav.start(sfd );
+	wav.start(sfd, 0 );
 	usleep(500000);
 	printf("Started\n" );
 	val = wav.getVersion(buffer, MAX_BUF );
@@ -172,31 +172,31 @@ main(int argc, char *argv[] )
 		{
 			case '1':
 				printf("Left Dorsal\n" );
-				wav.trackPlaySolo(LEFT_DORSAL_CHAN, 1);
+				wav.trackPlaySolo(LEFT_DORSAL_CHAN, 103);
 				break;
 			case '2':
 				printf("Right Dorsal\n" );
-				wav.trackPlaySolo(RIGHT_DORSAL_CHAN, 1);
+				wav.trackPlaySolo(RIGHT_DORSAL_CHAN, 103);
 				break;
 			case '3':
 				printf("Left Femoral\n" );
-				wav.trackPlaySolo(LEFT_FEMORAL_CHAN, 1);
+				wav.trackPlaySolo(LEFT_FEMORAL_CHAN, 103);
 				break;
 			case '4':
 				printf("Right Femoral\n" );
-				wav.trackPlaySolo(RIGHT_FEMORAL_CHAN, 1);
+				wav.trackPlaySolo(RIGHT_FEMORAL_CHAN, 103);
 				break;
 			case '5':
 				printf("Speaker 1\n" );
-				wav.trackPlaySolo(SPK_1_CHAN, 1);
+				wav.trackPlaySolo(SPK_1_CHAN, 103);
 				break;
 			case '6':
 				printf("Speaker 2\n" );
-				wav.trackPlaySolo(SPK_2_CHAN, 1);
+				wav.trackPlaySolo(SPK_2_CHAN, 103);
 				break;
 			case '7':
 				printf("Headset\n" );
-				wav.trackPlaySolo(HEADSET_CHAN, 1);
+				wav.trackPlaySolo(HEADSET_CHAN, 103);
 				break;
 			case 'q': case 'Q':
 				printf("Quit\n" );

@@ -25,7 +25,7 @@ BBB_GPIO=../../BeagleBoneBlack-GPIO
 all: $(targets)
 
 soundSense: soundSense.cpp wavTrigger.o wavTrigger.h ../comm/shmData.h ../comm/simCtlComm.h ../comm/simCtlComm.o ../comm/simUtil.h ../comm/simUtil.o
-	g++ $(CFLAGS) -o soundSense -lrt -lrt -lpthread -Wall wavTrigger.o ../comm/simUtil.o ../comm/simCtlComm.o soundSense.cpp
+	g++ $(CFLAGS) -o soundSense -lrt -lpthread -Wall wavTrigger.o ../comm/simUtil.o ../comm/simCtlComm.o soundSense.cpp
 
 wavTrigger.o: wavTrigger.cpp wavTrigger.h
 
