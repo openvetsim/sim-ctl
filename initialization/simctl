@@ -28,16 +28,16 @@ do_start()
 	sleep 2
 	/usr/local/bin/pulse
 	/usr/local/bin/rfidScan
-	/usr/local/bin/soundSense ttyO2
+	/usr/local/bin/soundSense
 	/usr/local/bin/breathSense
 	/usr/local/bin/cprScan
 	
 }
 do_stop()
 {
-	killall cprScan
 	killall soundSense
 	killall breathSense
+	killall cprScan
 	killall rfidScan
 	killall pulse
 	killall simController
