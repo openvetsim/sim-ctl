@@ -143,15 +143,15 @@ int main(int argc, char *argv[])
 	{
 		daemonize();
 		isDaemon = 1;
-	}
 	
-	sts = initSHM(SHM_OPEN );
-	if ( sts  )
-	{
-		perror("initSHM");
-		return (-1 );
+	
+		sts = initSHM(SHM_OPEN );
+		if ( sts  )
+		{
+			perror("initSHM");
+			return (-1 );
+		}
 	}
-
 	init_touch_sensors();
 	
 	if ( debug )
@@ -202,12 +202,13 @@ init_touch_sensors(void )
 	{
 		sensor = read_ain(senseChannels[chan].ainChannel );
 		position = senseChannels[chan].position;
-		
-		senseChannels[chan].baseline = sensor;
-		shmData->pulse.base[position] = sensor;
-		shmData->pulse.ain[position] = sensor;
-		shmData->pulse.touch[position] = 0;
-		
+		if ( ! debug )
+		{
+			senseChannels[chan].baseline = sensor;
+			shmData->pulse.base[position] = sensor;
+			shmData->pulse.ain[position] = sensor;
+			shmData->pulse.touch[position] = 0;
+		}
 		if ( debug )
 		{
 			printf("Chan %d, Baseline %d\n",
@@ -242,22 +243,25 @@ read_touch_sensors(void )
 		read_touch_sensor(chan );
 	
 		pressure = senseChannels[chan].last;
-		switch ( senseChannels[chan].position )
+		if ( ! debug )
 		{
-			case PULSE_RIGHT_DORSAL:
-				shmData->pulse.right_dorsal = pressure;
-				break;
-			case PULSE_LEFT_DORSAL:
-				shmData->pulse.left_dorsal = pressure;
-				break;
-			case PULSE_RIGHT_FEMORAL:
-				shmData->pulse.right_femoral = pressure;
-				break;
-			case PULSE_LEFT_FEMORAL:
-				shmData->pulse.left_femoral = pressure;
-				break;
-			default:
-				break;
+			switch ( senseChannels[chan].position )
+			{
+				case PULSE_RIGHT_DORSAL:
+					shmData->pulse.right_dorsal = pressure;
+					break;
+				case PULSE_LEFT_DORSAL:
+					shmData->pulse.left_dorsal = pressure;
+					break;
+				case PULSE_RIGHT_FEMORAL:
+					shmData->pulse.right_femoral = pressure;
+					break;
+				case PULSE_LEFT_FEMORAL:
+					shmData->pulse.left_femoral = pressure;
+					break;
+				default:
+					break;
+			}
 		}
 	}
 }
@@ -273,8 +277,10 @@ read_touch_sensor(int chan )
 	sensor = read_ain(ainChan );
 	senseChannels[chan].ain = sensor;
 	
-	shmData->pulse.ain[position] = sensor;
-	
+	if ( ! debug )
+	{
+		shmData->pulse.ain[position] = sensor;
+	}
 	if ( ( sensor > 4096 ) || ( sensor < 0 ) )
 	{
 		sprintf(msgbuf, "bad sensor read %d", sensor );
@@ -321,8 +327,13 @@ read_touch_sensor(int chan )
 		}
 		senseChannels[chan].last = on;
 	
-		shmData->pulse.base[position] = senseChannels[chan].baseline;
-		
+		if ( ! debug )
+		{
+			shmData->pulse.base[position] = senseChannels[chan].baseline;
+		}
 	}
-	shmData->pulse.touch[position] = senseChannels[chan].last;
+	if ( ! debug )
+	{
+		shmData->pulse.touch[position] = senseChannels[chan].last;
+	}
 }

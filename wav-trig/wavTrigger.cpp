@@ -469,10 +469,11 @@ int wavTrigger::getReturnData(char *buf, int maxLen) {
 	int len;
 	int rec = 0;
 	int loops = 0;
-  if ( sioPort < 0 )
-  {
+	
+	if ( sioPort < 0 )
+	{
 	  return ( -1 );
-  }
+	}
 	memset(buf, 0, maxLen );
 	// Read input until we get a Start (0xF0, 0xAA)
 	for ( i = 0 ; i < ( maxLen + 4 ) ;  loops++ )

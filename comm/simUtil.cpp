@@ -374,6 +374,7 @@ int findAINPath(void )
 }
 	
 #define NAME_LEN (PATH_MAX+32)
+
 int
 read_ain(int chan )
 {
@@ -382,6 +383,8 @@ read_ain(int chan )
 	char name[NAME_LEN];
 	int sts;
 	char buf[8];
+	FILE *fp;
+	size_t bytes;
 	
 	if ( ain_path_found == 0 )
 	{
@@ -397,23 +400,55 @@ read_ain(int chan )
 		{
 			snprintf(name, NAME_LEN, "%s/AIN%d", ain_path, chan);
 		}
-		fd = open (name, O_RDONLY );
-		if ( fd < 0 )
+		
+		fp = fopen (name, "r" );
+		
+		if ( ! fp )
 		{
 			if ( debug )
 			{
 				fprintf(stderr, "Failed to open %s", name );
 			}
-			perror("open" );
+			perror("fopen" );
 			exit ( -2 );
 		}
-		
-		sts = read(fd, buf, 4 );
-		if ( sts == 4 )
+		fd = fileno(fp );
+		fd_set set;
+		struct timeval timeout;
+	
+		FD_ZERO(&set);
+		FD_SET(fd, &set);
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 0;
+  
+		sts = select(fd + 1, &set, NULL, NULL, &timeout);
+		if(sts == -1)
+		{
+			syslog(LOG_DAEMON | LOG_ERR, "Select failed for AIN");
+			exit ( -1 );
+		}
+		else if(sts == 0)
+		{
+			syslog(LOG_DAEMON | LOG_ERR, "Select timeout for AIN");
+			exit ( -1 );
+		}
+		bytes = fread(buf, 1, 4, fp );
+		if ( bytes < 1 )
+		{
+			if ( debug )
+			{
+				printf("fread failed for AIN%d, bytes %d, Error %s\n", chan, bytes, strerror(errno));
+			}
+			else
+			{
+				syslog(LOG_DAEMON | LOG_ERR, "fread failed for AIN%d, bytes %d msg: %s", chan, bytes, strerror(errno));
+			}
+		}
+		else
 		{
 			val = atoi(buf );
 		}
-		close(fd);
+		fclose(fp);
 	}
 
 	return ( val );
