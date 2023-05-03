@@ -3,7 +3,7 @@
  *
  * This file is part of the sim-ctl distribution (https://github.com/OpenVetSimDevelopers/sim-ctl).
  * 
- * Copyright (c) 2019 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
+ * Copyright (c) 2019-2023 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
  * 
  * This program is free software: you can redistribute it and/or modify  
  * it under the terms of the GNU General Public License as published by  
@@ -16,6 +16,8 @@
  *
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * 4.12.2023 - Removed support for Dorsal Pulses
 */
 	
 #include <cstdlib>
@@ -89,13 +91,13 @@ sendStatus(void )
 	cout << "\n},\n";
 
 	cout << " \"pulse\" : {\n";
-	makejson(cout, "right_dorsal", itoa(shmData->pulse.right_dorsal ) );
+	makejson(cout, "right_dorsal", "0" );
 	cout << ",\n";
-	makejson(cout, "RD_AIN", itoa(shmData->pulse.ain[1] ) );
+	makejson(cout, "RD_AIN", "4095" );
 	cout << ",\n";
-	makejson(cout, "left_dorsal", itoa(shmData->pulse.left_dorsal ) );
+	makejson(cout, "left_dorsal", "0" );
 	cout << ",\n";
-	makejson(cout, "LD_AIN", itoa(shmData->pulse.ain[3] ) );
+	makejson(cout, "LD_AIN", "4095" );
 	cout << ",\n";
 	makejson(cout, "right_femoral", itoa(shmData->pulse.right_femoral ) );
 	cout << ",\n";

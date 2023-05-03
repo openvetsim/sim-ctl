@@ -9,7 +9,7 @@
  *
  * This file is part of the sim-ctl distribution (https://github.com/OpenVetSimDevelopers/sim-ctl).
  * 
- * Copyright (c) 2019 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
+ * Copyright (c) 2019-2023 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
  * 
  * This program is free software: you can redistribute it and/or modify  
  * it under the terms of the GNU General Public License as published by  
@@ -22,6 +22,8 @@
  *
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * 4.12.2023 - Removed support for Dorsal Pulses
 */
 
  
@@ -95,9 +97,7 @@ struct senseChans
 struct senseChans senseChannels [] =
 {
 	{ TOUCH_SENSE_AIN_CHANNEL_1, PULSE_LEFT_FEMORAL,  0, 0, 0 },
-	{ TOUCH_SENSE_AIN_CHANNEL_2, PULSE_RIGHT_FEMORAL, 0, 0, 0 },
-	{ TOUCH_SENSE_AIN_CHANNEL_3, PULSE_LEFT_DORSAL,   0, 0, 0 },
-	{ TOUCH_SENSE_AIN_CHANNEL_4, PULSE_RIGHT_DORSAL,  0, 0, 0 } 
+	{ TOUCH_SENSE_AIN_CHANNEL_2, PULSE_RIGHT_FEMORAL, 0, 0, 0 } 
 };
 
 int main(int argc, char *argv[])
@@ -165,15 +165,11 @@ int main(int argc, char *argv[])
 
 		if ( debug && ( loops++ >= 10 ) )
 		{
-			sprintf(msgbuf, "sense %d %d %d %d %d %d %d %d", 
+			sprintf(msgbuf, "sense %d %d %d %d", 
 					senseChannels[0].ain,
 					senseChannels[1].ain,
-					senseChannels[2].ain,
-					senseChannels[3].ain,
 					senseChannels[0].last,
-					senseChannels[1].last,
-					senseChannels[2].last,
-					senseChannels[3].last );
+					senseChannels[1].last );
 			if ( debug )
 				printf("%s\n", msgbuf );
 			else
@@ -198,7 +194,7 @@ init_touch_sensors(void )
 	int sensor;
 	int position;
 	
-	for ( chan = 0 ; chan < 4 ; chan++ )
+	for ( chan = 0 ; chan < 2 ; chan++ )
 	{
 		sensor = read_ain(senseChannels[chan].ainChannel );
 		position = senseChannels[chan].position;
@@ -218,8 +214,6 @@ init_touch_sensors(void )
 }
 const char *positions[] = {
 	"None",
-	"Right Dorsal",
-	"Right Femoral",
 	"Left Dorsal",
 	"Left Femoral" 
 };
@@ -238,7 +232,7 @@ read_touch_sensors(void )
 	int chan;
 	int pressure;
 	
-	for ( chan = 0 ; chan < 4 ; chan++ )
+	for ( chan = 0 ; chan < 2 ; chan++ )
 	{
 		read_touch_sensor(chan );
 	
@@ -247,12 +241,6 @@ read_touch_sensors(void )
 		{
 			switch ( senseChannels[chan].position )
 			{
-				case PULSE_RIGHT_DORSAL:
-					shmData->pulse.right_dorsal = pressure;
-					break;
-				case PULSE_LEFT_DORSAL:
-					shmData->pulse.left_dorsal = pressure;
-					break;
 				case PULSE_RIGHT_FEMORAL:
 					shmData->pulse.right_femoral = pressure;
 					break;

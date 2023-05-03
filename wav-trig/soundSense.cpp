@@ -16,6 +16,8 @@
  *
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * 4.12.2023 - Removed support for Dorsal Pulses
 */
 
 #include <string.h>
@@ -1337,12 +1339,13 @@ rise_handler(int sig, siginfo_t *si, void *uc)
 	}
 	else
 	{
+		// When chest movement is disabled, 
 		lungRise(TURN_OFF );
 		lungFall(TURN_ON);
-		usleep(10000);
-		lungFall(TURN_OFF );
+		//usleep(100000);
+		//lungFall(TURN_OFF );
 		riseOnOff = 0;
-		fallOnOff = 0;
+		fallOnOff = 1;
 	}
 	exhLimit = EXH_LIMIT;
 }
@@ -1536,7 +1539,6 @@ lungRise(int control )
 	
 */
 	
-#define FLIP_LUNG	1
 void 
 runLung( void )
 {
@@ -1549,7 +1551,8 @@ runLung( void )
 	
 	if ( ! shmData->respiration.chest_movement )
 	{
-		allAirOff(0);
+		//allAirOff(0);
+		lungRise(TURN_OFF );
 	}
 
 	if ( shmData->auscultation.side != 0  )
@@ -1786,34 +1789,6 @@ void doPulse(void )
 	{
 		return;
 	}
-#if 0	
-	if ( shmData->pulse.right_dorsal && shmData->cardiac.right_dorsal_pulse_strength > 0 )
-	{
-			pulseVolume = getPulseVolume(shmData->pulse.right_dorsal, shmData->cardiac.right_dorsal_pulse_strength );
-			pulseVolume = pulseVolume - 25;
-			shmData->pulse.volume[PULSE_RIGHT_DORSAL] = pulseVolume;
-			wavPulse->channelGain(5, pulseVolume );
-			wavPulse->trackPlayPoly(5, PULSE_TRACK);
-	}
-	else
-	{
-		wavPulse->channelGain(5, PULSE_VOLUME_OFF );
-		shmData->pulse.volume[PULSE_RIGHT_DORSAL] = PULSE_VOLUME_OFF;
-	}
-	if ( shmData->pulse.left_dorsal && shmData->cardiac.left_dorsal_pulse_strength > 0 )
-	{
-			pulseVolume = getPulseVolume(shmData->pulse.left_dorsal, shmData->cardiac.left_dorsal_pulse_strength );
-			pulseVolume = pulseVolume - 25;
-			shmData->pulse.volume[PULSE_LEFT_DORSAL] = pulseVolume;
-			wavPulse->channelGain(4, pulseVolume );
-			wavPulse->trackPlayPoly(4, PULSE_TRACK);
-	}
-	else
-	{
-		wavPulse->channelGain(4, PULSE_VOLUME_OFF );
-		shmData->pulse.volume[PULSE_LEFT_DORSAL] = PULSE_VOLUME_OFF;
-	}
-#endif
 	if ( wavPulse->boardType == BOARD_TSUNAMI )
 	{
 		if ( shmData->pulse.right_femoral && shmData->cardiac.right_femoral_pulse_strength > 0 )
@@ -1890,15 +1865,6 @@ void doPulse(void )
 			pulseStrength = shmData->cardiac.right_femoral_pulse_strength;
 			break;
 		
-		case PULSE_LEFT_DORSAL:
-			pulseChannel = 4;
-			pulseStrength = shmData->cardiac.left_dorsal_pulse_strength;
-			break;
-		
-		case PULSE_RIGHT_DORSAL:
-			pulseChannel = 5;
-			pulseStrength = shmData->cardiac.right_dorsal_pulse_strength;
-			break;
 	}
 		
 	if ( pulseChannel > 0 )
