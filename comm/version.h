@@ -19,3 +19,26 @@
 */
 
 #define SIMCTL_VERSION "1.1.0"
+
+/*
+Changes since 1.0.4:
+
+This version supports an upcoming change to the Sim Controller PCB (PCB version 3.1.x), which does not
+have ADC or Audio channels connected for Dorsal Pulses.
+
+This version also supports using two Wav Trigger cards in place of a single Tsunami. This is to provide an
+alternative if Tsunami boards are unavailable.
+
+Software Changes:
+
+	Update JQuery to version 3.6.4
+	
+	Add support for dual WavTrigger sound cards in place of Tsunami
+	(Tsunami is still the default configuration)
+
+	Remove support for Dorsal Pulse
+	
+	Change to service "stop" process
+	
+	Debug output changes
+*/
