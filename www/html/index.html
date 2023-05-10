@@ -68,8 +68,6 @@
 			success: function(response,  textStatus, jqXHR ) {
 				$('#gaugeLF .gauge-arrow').trigger('updateGauge', (response.pulse.LF_AIN / 4096 ) * 100);
 				$('#gaugeRF .gauge-arrow').trigger('updateGauge', (response.pulse.RF_AIN / 4096 ) * 100);
-				$('#gaugeLD .gauge-arrow').trigger('updateGauge', (response.pulse.LD_AIN / 4096 ) * 100);
-				$('#gaugeRD .gauge-arrow').trigger('updateGauge', (response.pulse.RD_AIN / 4096 ) * 100);
 				$('#gaugeBreath .gauge-arrow').trigger('updateGauge', (response.respiration.ain / 1024 ) * 100);
 				$('#ain0').text(response.respiration.ain);
 				if ( response.respiration.active > 0 )
@@ -300,24 +298,7 @@
 			</div>
 		</div>
 	</div>
-	
-	<div class="pulseGauge clear">
-		<p>Left Dorsal</p>
-		<div id="gaugeLD" class="gauge gauge-green">
-			<div class="gauge-arrow" data-percentage="40"
-				 style="transform: rotate(0deg);"></div>
-		</div>
-	</div>
 
-	<div class="pulseGauge">
-		<p>Right Dorsal</p>
-		<div id="gaugeRD" class="gauge gauge-green">
-			<div class="gauge-arrow" data-percentage="90"
-				 style="transform: rotate(0deg);">
-			</div>
-		</div>
-	</div>
-	
 	<div class="pulseGauge clear">
 		<p>Manual Breath</p>
 		<div id="gaugeBreath" class="gauge gauge-green">

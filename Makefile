@@ -43,6 +43,9 @@ update:
 webconfig:
 	sudo cp initialization/nginx_default /etc/nginx/sites-enabled/default
 	sudo service nginx restart
+
+flasher:
+	sudo /opt/scripts/tools/eMMC/beaglebone-black-make-microSD-flasher-from-eMMC.sh
 	
 all clean install factory:
 	@for dir in $(SUBDIRS); do \
