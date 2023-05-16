@@ -1342,10 +1342,10 @@ rise_handler(int sig, siginfo_t *si, void *uc)
 		// When chest movement is disabled, 
 		lungRise(TURN_OFF );
 		lungFall(TURN_ON);
-		//usleep(100000);
-		//lungFall(TURN_OFF );
+		usleep(10000);
+		lungFall(TURN_OFF );
 		riseOnOff = 0;
-		fallOnOff = 1;
+		fallOnOff = 0;
 	}
 	exhLimit = EXH_LIMIT;
 }
@@ -1551,8 +1551,7 @@ runLung( void )
 	
 	if ( ! shmData->respiration.chest_movement )
 	{
-		//allAirOff(0);
-		lungRise(TURN_OFF );
+		allAirOff(0);
 	}
 
 	if ( shmData->auscultation.side != 0  )
