@@ -18,12 +18,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SIMCTL_VERSION "1.1.1"
+#define SIMCTL_VERSION "1.1.2"
 
 /*
-Changes since 1.1.0:
+Version 1.1.2:
+	
+	Added support for ToF sensor, VL6180x for compression distance
 
-Reverted Rise disable action to pre 1.1.0
+Version 1.1.1:
+
+	Reverted Rise disable action to pre 1.1.0
 
 Changes since 1.0.4:
 

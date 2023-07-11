@@ -22,7 +22,7 @@
 	var lastRbit = 0;
 	var lastBbit = 0;
 	var lastDbit = 0;
-	var lastMbit = 0;
+	//var lastMbit = 0;
 	var chartColor = "#999999";
 	var ctx = 0;
 	var canvas;
@@ -168,7 +168,7 @@
 		var rbit = resp_scale(resp.ain );
 		var bbit = resp_scale(resp.baseline );
 		var dbit = distance_scale(cpr.distance );
-		var mbit = distance_scale(cpr.maxDistance );
+		//var mbit = distance_scale(cpr.maxDistance );
 		//console.log (xbit,ybit,zbit,rbit,bbit,dbit,mbit);
 		switch ( nextX % 3 )
 		{
@@ -194,7 +194,7 @@
 		lastRbit = drawBit(lastRbit, rbit, "#777700" );
 		lastBbit = drawBit(lastBbit, bbit, "#007777" );
 		lastDbit = drawBit(lastDbit, dbit, "#DDDD70" );
-		lastMbit = drawBit(lastMbit, mbit, "#DDDD70" );
+		//lastMbit = drawBit(lastMbit, mbit, "#DDDD70" );
 		nextX = (nextX + 1) % 250;
 	}
 	
@@ -216,9 +216,14 @@
 	}
 	function distance_scale(val )
 	{
-		// Scale from range to bit, 150 to 0
+		
+		// 53X80 Scale from range to bit, 150 to 0
 		// Expect a value of       0 to 1600
-		rval = parseInt(Math.abs((parseInt(val )/11)-148));
+		//rval = parseInt(Math.abs((parseInt(val )/11)-148));
+		
+		// vl6810x Scale from range to bit, 150 to 0
+		// Expect a value of       0 to 255
+		rval = parseInt(Math.abs((parseInt(val )/2)-140));
 		//console.log(rval, val );
 		return (  rval );
 	}

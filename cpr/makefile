@@ -25,11 +25,14 @@ default:	$(targets)
 
 all: $(targets)
 
-cprScan: cprScan.cpp  cprI2C.o cprI2C.h ../comm/simUtil.o ../comm/simUtil.h
-	g++ cprScan.cpp  $(CFLAGS) $(LDFLAGS) cprI2C.o ../comm/simUtil.o  -o cprScan
+cprScan: cprScan.cpp  cprI2C.o cprI2C.h vl6180x.o vl6180x.h ../comm/simUtil.o ../comm/simUtil.h
+	g++ cprScan.cpp  $(CFLAGS) $(LDFLAGS) cprI2C.o vl6180x.o ../comm/simUtil.o  -o cprScan
 	
 cprI2C.o: cprI2C.cpp cprI2C.h ../comm/simUtil.h ../comm/shmData.h
 	g++   $(CFLAGS) -c -o cprI2C.o cprI2C.cpp
+
+vl6180x.o: vl6180x.cpp vl6180x.h ../comm/simUtil.h ../comm/shmData.h
+	g++   $(CFLAGS) -c -o vl6180x.o vl6180x.cpp
 	
 install: $(installTargets) .FORCE
 	sudo cp -u $(installTargets) /usr/local/bin

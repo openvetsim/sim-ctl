@@ -140,6 +140,7 @@ struct cpr
 	int x;
 	int y;
 	int z;
+	int tof_present;	// Set if tof sensor is found
 	int distance;		// distance in mm, used for 
 	int maxDistance;	// Fully extended distance
 };

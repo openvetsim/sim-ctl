@@ -3,7 +3,7 @@
  *
  * This file is part of the sim-ctl distribution (https://github.com/OpenVetSimDevelopers/sim-ctl).
  * 
- * Copyright (c) 2019 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
+ * Copyright (c) 2019-2023 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
  * 
  * This program is free software: you can redistribute it and/or modify  
  * it under the terms of the GNU General Public License as published by  
@@ -38,12 +38,21 @@
 #include <signal.h>
 #include <string.h>
 
+#define SUPPORT_TOF 1
 #ifdef SUPPORT_TOF
-extern "C" {
-#include <tof.h> // time of flight sensor library
-}
+
+#include "vl6180x.h"
+#include <linux/i2c-dev.h>
+#include <sys/ioctl.h>
+
+#define ADDRESS_DEFAULT 0x29
+
 void startTOF(void);
 void runTOF(void);
+int tofGetModel(int *model, int *revision);
+int file_i2c;
+VL6180X tof;
+
 #endif
 
 #include "../comm/simCtlComm.h"
@@ -197,6 +206,56 @@ int main(int argc, char *argv[])
 void
 startTOF(void)
 {
+	char filename[32];
+	int model = 0;
+	int revision = 0;
+	int sts;
+	
+	shmData->cpr.tof_present = 0;
+	sprintf(filename,"/dev/i2c-%d", 2);
+	
+	sts = getI2CLock();
+	if ( sts )
+	{
+		releaseI2CLock();
+		printf("runTOF::readRegister: Could not get I2C Lock\n" );
+		return;
+	}
+	if ((file_i2c = open(filename, O_RDWR)) < 0)
+	{
+		// No ToF Found
+		releaseI2CLock();
+		return;
+	}
+	if (ioctl(file_i2c, I2C_SLAVE, ADDRESS_DEFAULT) < 0)
+	{
+		fprintf(stderr, "Failed to acquire bus access or talk to slave\n");
+		releaseI2CLock();
+		close(file_i2c);
+		file_i2c = -1;
+		return;
+	}
+	
+	tof.setDev(file_i2c );
+	tof.setAddress((uint8_t)ADDRESS_DEFAULT );
+	revision = tof.readReg32Bit((uint16_t)0x0001);
+	model = tof.readReg((uint16_t)0x000 );
+	releaseI2CLock();
+	
+	sprintf(msgbuf, "VL63L0X: Model %02xh Revision %02xh", model, revision );
+	log_message("", msgbuf );
+	
+	if ( model != 0xB4 )
+	{
+		// Not a VL6810
+		sprintf(msgbuf, "VL63L0X: Model %02xh is not B4h", model );
+		log_message("", msgbuf );
+		return;
+	}
+	shmData->cpr.tof_present = 1;
+	shmData->cpr.distance = 0;
+	shmData->cpr.maxDistance = 0;
+	
 	pid_t pid = fork(); /* Create a child process */
 
 	switch (pid) {
@@ -215,51 +274,38 @@ startTOF(void)
 void
 runTOF(void)
 {
-	int i;
-	int distance = 0;
-	int maxDistance = 0;
-	int model, revision;
-	char lmbuf[2048];
+	int distance;
 	int sts;
 
+	usleep(100000);
 	sts = getI2CLock();
-	if ( sts )
-	{
-		printf("runTOF::readRegister: Could not get I2C Lock\n" );
-		exit ( -1 );
-	} 
-	i = tofInit(2, 0x29, 1); // set long range mode (up to 2m)
+	tof.init();
+	tof.configureDefault();
+	tof.setPtpOffset(22);
+	tof.setTimeout(500);
 	releaseI2CLock();
-	if (i != 1)
-	{
-		log_message("","No ToF sensor " );
-		exit ( 0 );
-	}
-	sts = getI2CLock();
-	if ( sts )
-	{
-		printf("runTOF::readRegister: Could not get I2C Lock\n" );
-		exit ( -1 );
-	} 
-	i = tofGetModel(&model, &revision);
-	releaseI2CLock();
-	sprintf(lmbuf, "VL53L0X: Model %02xh Revision %02xh", model, revision );
-	log_message("", msgbuf );
+	
 	while ( 1 ) // read values 20 times a second
 	{
 		sts = getI2CLock();
 		if ( sts == 0 )
 		{
-			distance = tofReadDistance();
+			distance = tof.readRangeSingle();
 			releaseI2CLock();
-			if (distance < 4096) // valid range?
+			if ( tof.timeoutOccurred() )
 			{
-				if ( distance > maxDistance )
+				shmData->cpr.tof_present += 1;
+			}
+			else
+			{
+				//if (distance > 0 && distance < 255) // valid range?
 				{
-					maxDistance = distance;
-					shmData->cpr.maxDistance = distance;
+					shmData->cpr.distance = distance;
+					if ( distance > shmData->cpr.maxDistance )
+					{
+						shmData->cpr.maxDistance = distance;
+					}
 				}
-				shmData->cpr.distance = distance;
 			}
 		}
 		usleep(50000); // 50ms
