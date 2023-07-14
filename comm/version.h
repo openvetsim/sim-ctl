@@ -18,9 +18,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SIMCTL_VERSION "1.1.2"
+#define SIMCTL_VERSION "1.1.3"
 
 /*
+Version 1.1.3:
+
+	Adjustment in loop delays to reduce CPU usage
+	
 Version 1.1.2:
 	
 	Added support for ToF sensor, VL6180x for compression distance

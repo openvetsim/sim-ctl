@@ -1097,7 +1097,7 @@ main(int argc, char *argv[] )
 	
 		runLung();
 		runHeart();
-		usleep(10000 );
+		usleep(20000 );
 	}
 }
 
