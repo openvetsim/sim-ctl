@@ -21,6 +21,9 @@
 #define SIMCTL_VERSION "1.1.3"
 
 /*
+Version 1.1.4:
+	Fixed missing respiration/breathSense.cpp. Left out from 1.1.3 release
+
 Version 1.1.3:
 
 	Adjustment in loop delays to reduce CPU usage
