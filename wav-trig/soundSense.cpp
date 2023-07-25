@@ -103,6 +103,8 @@ time_t fallStopTime = 0;
 #define TANK_THREASHOLD_LO	1550
 #define TANK_THREASHOLD_HI	2400
 
+#define SOUND_LOOP_DELAY	20000	// Delay in usec
+
 using namespace std;
 
 #define MAX_BUF	255
@@ -380,13 +382,10 @@ showSounds(void )
 }
 
 void
-getFiles(void )
+getHeartFiles(void )
 {
-	int breathRate = shmData->respiration.rate;
 	int hr = shmData->cardiac.rate;
 	int i;
-	int new_inhL = -1;
-	int new_inhR = -1;
 	int new_lubdub = -1;
 	struct sound *sound;
 	
@@ -399,6 +398,28 @@ getFiles(void )
 			break;
 		}
 	}
+	if ( new_lubdub == -1 )
+	{
+		snprintf(msgbuf, 1024, "No lubdub file for %s %d", current.heart_sound, shmData->cardiac.rate );
+		log_message("", msgbuf);
+	}
+	else
+	{
+		lubdub = new_lubdub;
+	}
+	snprintf(msgbuf, 1024, "Get Heart Files %s : %d", 
+		current.heart_sound, lubdub );
+	log_message("", msgbuf);
+}
+void
+getLungFiles(void )
+{
+	int breathRate = shmData->respiration.rate;
+	int i;
+	int new_inhL = -1;
+	int new_inhR = -1;
+	struct sound *sound;
+	
 	for ( i = 0 ;  i < maxSounds ; i++ )
 	{
 		sound = &soundList[i];
@@ -416,16 +437,6 @@ getFiles(void )
 			new_inhR = sound->index;
 			break;
 		}
-	}
-
-	if ( new_lubdub == -1 )
-	{
-		snprintf(msgbuf, 1024, "No lubdub file for %s %d", current.heart_sound, shmData->cardiac.rate );
-		log_message("", msgbuf);
-	}
-	else
-	{
-		lubdub = new_lubdub;
 	}
 	if ( new_inhL == -1 )
 	{
@@ -445,11 +456,10 @@ getFiles(void )
 	{
 		inhR = new_inhR;
 	}
-	snprintf(msgbuf, 1024, "Get Files %s : %d, %s : %d, %s : %d", 
-		current.heart_sound, lubdub, current.left_lung_sound, inhL, current.right_lung_sound, inhR );
+	snprintf(msgbuf, 1024, "Get Lung Files %s : %d, %s : %d", 
+		current.left_lung_sound, inhL, current.right_lung_sound, inhR );
 	log_message("", msgbuf);
 }
-
 unsigned int heartLast = 0;
 int heartState = 0;
 unsigned int lungLast = 0;
@@ -1009,55 +1019,55 @@ main(int argc, char *argv[] )
 		}
 		else
 		{
-		if ( listenState != comm.state )
-		{
-			// listenState has changed. If new state is TRUE then bark
-			listenState = comm.state;
-			if ( listenState == TRUE )
+			if ( listenState != comm.state )
 			{
-				int savedVolume = current.masterGain;
-				wav.channelGain(0, 0);
-				current.masterGain = 0;
-				while ( wav.getTracksPlaying() > 0 )
+				// listenState has changed. If new state is TRUE then bark
+				listenState = comm.state;
+				if ( listenState == TRUE )
 				{
-					usleep(10000);
+					int savedVolume = current.masterGain;
+					wav.channelGain(0, 0);
+					current.masterGain = 0;
+					while ( wav.getTracksPlaying() > 0 )
+					{
+						usleep(10000);
+					}
+					//wav.trackGain(5, 0 );
+					wav.stopAllTracks();
+					snprintf(msgbuf, 1024, "Enter Listen State Bark");
+					log_message("", msgbuf);
+					wav.trackPlaySolo(0, 5);	// Bark
+					while ( wav.getTracksPlaying() > 0 )
+					{
+						usleep(10000);
+					}
+					wav.channelGain(0, savedVolume);
 				}
-				//wav.trackGain(5, 0 );
-				wav.stopAllTracks();
-				snprintf(msgbuf, 1024, "Enter Listen State Bark");
+			}
+			if ( ( shmData->auscultation.side == 0 ) && ( current.masterGain != MIN_VOLUME ) )
+			{
+				wav.channelGain(0, MIN_VOLUME);
+				current.masterGain = MIN_VOLUME;
+				if ( debug )
+				{
+					printf("Master Off\n" );
+				}
+				snprintf(msgbuf, 1024, "Set Off: %d, %d, Heart Gain %d, Lung Gains %d / %d, Master Gain %d", 
+					current.heartCount, current.breathCount, current.heartGain, current.rightLungGain, current.leftLungGain, current.masterGain );
 				log_message("", msgbuf);
-				wav.trackPlaySolo(0, 5);	// Bark
-				while ( wav.getTracksPlaying() > 0 )
+			}
+			else if ( ( shmData->auscultation.side != 0 ) && ( current.masterGain != MAX_VOLUME ) )
+			{
+				wav.channelGain(0, MAX_VOLUME);
+				current.masterGain = MAX_VOLUME;
+				if ( debug  )
 				{
-					usleep(10000);
+					printf("Master On\n" );
 				}
-				wav.channelGain(0, savedVolume);
+				snprintf(msgbuf, 1024, "Set On: %d, %d, Heart Gain %d, Lung Gains %d / %d (%d), Master Gain %d", 
+					current.heartCount, current.breathCount, current.heartGain, current.rightLungGain, current.leftLungGain, shmData->respiration.left_lung_sound_volume, current.masterGain );
+				log_message("", msgbuf);
 			}
-		}
-		if ( ( shmData->auscultation.side == 0 ) && ( current.masterGain != MIN_VOLUME ) )
-		{
-			wav.channelGain(0, MIN_VOLUME);
-			current.masterGain = MIN_VOLUME;
-			if ( debug )
-			{
-				printf("Master Off\n" );
-			}
-			snprintf(msgbuf, 1024, "Set Off: %d, %d, Heart Gain %d, Lung Gains %d / %d, Master Gain %d", 
-				current.heartCount, current.breathCount, current.heartGain, current.rightLungGain, current.leftLungGain, current.masterGain );
-			log_message("", msgbuf);
-		}
-		else if ( ( shmData->auscultation.side != 0 ) && ( current.masterGain != MAX_VOLUME ) )
-		{
-			wav.channelGain(0, MAX_VOLUME);
-			current.masterGain = MAX_VOLUME;
-			if ( debug  )
-			{
-				printf("Master On\n" );
-			}
-			snprintf(msgbuf, 1024, "Set On: %d, %d, Heart Gain %d, Lung Gains %d / %d (%d), Master Gain %d", 
-				current.heartCount, current.breathCount, current.heartGain, current.rightLungGain, current.leftLungGain, shmData->respiration.left_lung_sound_volume, current.masterGain );
-			log_message("", msgbuf);
-		}
 		}
 		// Check Air Reservoir
 		checkTank();
@@ -1075,6 +1085,12 @@ main(int argc, char *argv[] )
 			memcpy(current.heart_sound, shmData->cardiac.heart_sound, 32 );
 			changed = 1;
 		}
+		if ( changed )
+		{
+			getHeartFiles();
+			doReport();
+			changed = 0;
+		}
 		if ( ( current.respiration_rate != shmData->respiration.rate ) ||
 			 ( strcmp(current.left_lung_sound, shmData->respiration.left_lung_sound) != 0 ) ||
 			 ( strcmp(current.right_lung_sound, shmData->respiration.right_lung_sound) != 0 ) )
@@ -1091,13 +1107,13 @@ main(int argc, char *argv[] )
 		}
 		if ( changed )
 		{
-			getFiles();
+			getLungFiles();
 			doReport();
 		}
 	
 		runLung();
 		runHeart();
-		usleep(20000 );
+		usleep(SOUND_LOOP_DELAY );
 	}
 }
 
@@ -1324,6 +1340,8 @@ delay_handler(int sig, siginfo_t *si, void *uc)
 }
 #define EXH_LIMIT 400
 int exhLimit = EXH_LIMIT;
+#define INH_LIMIT 1.5
+double inhLimit = INH_LIMIT;
 
 static void
 rise_handler(int sig, siginfo_t *si, void *uc)
@@ -1545,6 +1563,7 @@ runLung( void )
 	struct itimerspec its;
 	long int delayTime;	// Delay in ns
 	double periodSeconds;
+	double inhTime;
 	double fractional;
 	double integer;
 	time_t now;
@@ -1633,35 +1652,30 @@ runLung( void )
 					{
 						periodSeconds = 2;
 					}
-					periodSeconds *= INH_PERCENT;
-					if ( periodSeconds < 0 )
+					inhTime = periodSeconds * INH_PERCENT;
+					if ( inhTime > inhLimit )
 					{
-						snprintf(msgbuf, 1024, "runLung: rise periodSeconds is negative period %f rate %d", periodSeconds, shmData->respiration.rate );
-						periodSeconds = 1;
+						inhTime = inhLimit;
+					}
+					
+					if ( inhTime < 0 )
+					{
+						snprintf(msgbuf, 1024, "runLung: rise inhTime (%f) is negative. period %f rate %d", inhTime, periodSeconds, shmData->respiration.rate );
+						inhTime = inhLimit;
 						log_message("", msgbuf );
 					}
-					fractional = modf(periodSeconds, &integer );
+					fractional = modf(inhTime, &integer );
 					its.it_value.tv_sec = (int)integer;
 					delayTime = fractional * 1000000000; //Seconds to nanoseconds
 
 					if ( delayTime < 0 )
 					{
-						snprintf(msgbuf, 1024, "runLung: rise delayTime is negative for period %f rate %d", periodSeconds, shmData->respiration.rate );
+						snprintf(msgbuf, 1024, "runLung: rise delayTime is negative for inhTime %f rate %d", inhTime, shmData->respiration.rate );
 						delayTime = 0;
 						log_message("", msgbuf );
 					}
 					its.it_value.tv_nsec = delayTime;
 					
-					/*
-					riseTime = ((int)integer * 1000 ) + ( delayTime /1000/1000 );  // In msec
-
-					if ( riseTime < 0 )
-					{
-						snprintf(msgbuf, 1024, "runLung: rise riseTime is negative for period %f rate %d", periodSeconds, shmData->respiration.rate );
-						riseTime = 0;
-						log_message("", msgbuf );
-					}
-					*/
 					if (timer_settime(rise_timer, 0, &its, NULL) == -1)
 					{
 						//perror("runLung: rise timer_settime");
@@ -1687,7 +1701,7 @@ runLung( void )
 				}
 				break;
 			case 1:
-				if ( shmData->auscultation.side != 0 )
+				if ( shmData->auscultation.side > 0 &&  shmData->auscultation.side < 4 )
 				{
 					if ( shmData->auscultation.side == 1 )
 					{
