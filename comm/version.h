@@ -18,9 +18,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SIMCTL_VERSION "1.1.3"
+#define SIMCTL_VERSION "1.1.4"
 
 /*
+Version 1.1.4:
+	Fixed missing respiration/breathSense.cpp. Left out from 1.1.3 release
+
 Version 1.1.3:
 
 	Adjustment in loop delays to reduce CPU usage
