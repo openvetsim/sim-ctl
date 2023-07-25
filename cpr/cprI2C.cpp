@@ -35,6 +35,8 @@
 #include "../comm/shmData.h"
 extern int debug;
 
+//char errbuf[2048];
+
 using namespace std;
 
 cprI2C::cprI2C(int dummy )
@@ -61,6 +63,11 @@ int cprI2C::scanForSensor(void )
 			if ( ioctl(I2Cfile, I2C_SLAVE, I2CAddr ) >= 0 )
 			{
 				cc = readRegister(WHO_AM_I );
+				if ( cc < 0 )
+				{
+					// Error on read
+					continue;
+				}
 				if ( debug )
 				{
 					printf("WHO_AM_I returns 0x%x\n", cc );
@@ -149,9 +156,13 @@ int cprI2C::readRegister(int reg )
 	releaseI2CLock();
 	if ( status < 0 )
 	{
-		perror("ioctl" );
-		printf("I2Cfile is %d\n", I2Cfile );
-		return ( -1 );
+		//sprintf(errbuf, "cprI2C::readRegister: ioctl error %d : %s", errno, strerror(errno) );
+		//log_message("", errbuf );
+		if ( errno == 121 )
+		{
+			present = 0;
+		}
+		return ( -2 );
 	}
 	return ( (int)in_buf[0] );
 }
@@ -189,9 +200,13 @@ int cprI2C::readRegister16(int reg )
 	releaseI2CLock();
 	if ( status < 0 )
 	{
-		perror("ioctl" );
-		printf("I2Cfile is %d\n", I2Cfile );
-		return ( -1 );
+		//sprintf(errbuf, "cprI2C::readRegister16: ioctl error %d : %s", errno, strerror(errno) );
+		//log_message("", errbuf );
+		if ( errno == 121 )
+		{
+			present = 0;
+		}
+		return ( -2 );
 	}
 	return ( (int)in_buf[0] | ( (int)in_buf[1] << 8 ) );
 }
@@ -218,11 +233,16 @@ int cprI2C::writeRegister(int reg, unsigned char val )
 	}
 	status = ioctl(I2Cfile, I2C_RDWR, &ioctl_data );
 	releaseI2CLock();
+	
 	if ( status < 0 )
 	{
-		perror("ioctl" );
-		printf("I2Cfile is %d\n", I2Cfile );
-		return ( -1 );
+		//sprintf(errbuf, "cprI2C::writeRegister: ioctl error %d : %s", errno, strerror(errno) );
+		//log_message("", errbuf );
+		if ( errno == 121 )
+		{
+			present = 0;
+		}
+		return ( -2 );
 	}
 	return ( 0 );
 }
@@ -237,6 +257,10 @@ int cprI2C::readSensor()
 	//float degreeF;
 	
 	status = readRegister(STATUS_REG_AUX );
+	if ( status < 0 )
+	{
+		return ( status );
+	}
 	if ( ( status & (SRA_3DA) ) == (SRA_3DA) )
 	{
 		value = readRegister(OUT_ADC3_L );
@@ -250,6 +274,10 @@ int cprI2C::readSensor()
 	
 	// See if Data is present
 	status = readRegister(STATUS_REG );
+	if ( status < 0 )
+	{
+		return ( status );
+	}
 	if ( ( status & (SR_ZDA|SR_YDA|SR_XDA) ) != (SR_ZDA|SR_YDA|SR_XDA) )
 	{
 		return ( 0 );

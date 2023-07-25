@@ -127,12 +127,25 @@ int main(int argc, char *argv[])
 	usleep(10000);
 	while ( 1 )
 	{
-		while ( ! ( newData = cprSense.readSensor() ) )
+		if ( cprSense.present == 0 )
 		{
-			usleep(5000);
+			usleep(10000000);	// Delay for 10 seconds
+			cprSense.scanForSensor();
 		}
-		if ( newData )
+		else
 		{
+			newData = cprSense.readSensor();
+			if ( newData <= 0 )
+			{
+				continue;
+			}
+			//while ( ! ( newData = cprSense.readSensor() ) )
+			//{
+			//	usleep(5000);
+			//}
+		//}
+		//if ( newData )
+		//{
 			loop++;
 			diffZ = cprSense.readingZ - lastZ;
 			lastZ = cprSense.readingZ;

@@ -18,9 +18,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SIMCTL_VERSION "1.1.4"
+#define SIMCTL_VERSION "1.1.5"
 
 /*
+Version 1.1.5:
+	Limit Limit breath inhalation time to 1.5 seconds, to better sync chest movement to sounds at low RR
+	Auto recover from CPR sensor temprarily removed from SimCtl.
+	
 Version 1.1.4:
 	Fixed missing respiration/breathSense.cpp. Left out from 1.1.3 release
 
