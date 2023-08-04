@@ -9,7 +9,7 @@ default:	$(targets)
 all: $(targets)
 
 ain_air_test: ain_air_test.c ../comm/simUtil.h  ../comm/simUtil.o
-	g++ ain_air_test.c  $(CFLAGS) ../comm/simUtil.o  $(LDFLAGS)  -o ain_air_test
+	g++ ain_air_test.c  $(CFLAGS) ../comm/simUtil.o  -o ain_air_test  $(LDFLAGS)
 
 ainmon: ainmon.cpp
 	g++ $(CFLAGS) -o ainmon -Wall  ainmon.cpp

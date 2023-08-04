@@ -26,7 +26,7 @@ default:	$(targets)
 all: $(targets)
 
 pulse: pulse.c  ../comm/simUtil.h ../comm/shmData.h ../comm/simUtil.o 
-	g++ pulse.c  $(CFLAGS)  ../comm/simUtil.o $(LDFLAGS) -o pulse
+	g++ pulse.c  $(CFLAGS)  ../comm/simUtil.o -o pulse $(LDFLAGS)
 
 install: $(installTargets) .FORCE
 	sudo cp -u $(installTargets) /usr/local/bin

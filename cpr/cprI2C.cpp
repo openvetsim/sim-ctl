@@ -25,7 +25,6 @@
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
-#include <stropts.h>
 #include <stdio.h>
 #include "cprI2C.h"
 #include <iostream>

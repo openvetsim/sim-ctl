@@ -38,10 +38,10 @@ simCtlComm.o: simCtlComm.cpp simCtlComm.h simUtil.h
 	g++   $(CFLAGS) -c -o simCtlComm.o simCtlComm.cpp
 	
 simController: simController.cpp simUtil.h shmData.h simUtil.o simParse.o
-	g++   $(CFLAGS) $(LDFLAGS) -o simController simController.cpp simUtil.o simParse.o
+	g++   $(CFLAGS) -o simController simController.cpp simUtil.o simParse.o $(LDFLAGS)
 
 ctlstatus.cgi: ctlstatus.cpp simUtil.h version.h shmData.h simUtil.o
-	g++   $(CFLAGS) $(LDFLAGS) -o ctlstatus.cgi ctlstatus.cpp simUtil.o
+	g++   $(CFLAGS) -o ctlstatus.cgi ctlstatus.cpp simUtil.o $(LDFLAGS)
 
 install: $(targets) .FORCE $(cgiTargets)
 	sudo cp -u  $(installTargets) /usr/local/bin
