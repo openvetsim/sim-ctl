@@ -651,8 +651,32 @@ main(int argc, char *argv[] )
 				return (0 );
 		}
 	}
+	// detect if TTY files are name tttOn or ttySn
+	// In earlier debian releases, ttyOn was used.
+	// In debian 10, the default name switched to ttySn, and symlinks allowed using ttyOn
+	// In debian 11, the symlinks are gone. 
+	struct stat sb;
 	sprintf(sioName[0], "/dev/ttyO2" );
 	sprintf(sioName[1], "/dev/ttyO4" );
+	printf("Checking %s\n", sioName[0] );
+	if (lstat(sioName[0], &sb) == -1)
+	{
+        // File not found, try ttsS2
+		sprintf(sioName[0], "/dev/ttyS2" );
+		sprintf(sioName[1], "/dev/ttyS4" );
+		if (lstat(sioName[0], &sb) == -1)
+		{
+			// No tty files
+		}
+		else
+		{
+			// Found ttyS2
+		}
+    }
+	else
+	{
+		// Found tty O2
+	}
 	
 	if ( monitor == 0 )
 	{
