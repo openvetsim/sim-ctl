@@ -18,9 +18,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SIMCTL_VERSION "1.1.5"
+#define SIMCTL_VERSION "1.1.6"
 
 /*
+Version 1.1.6:
+	Changes to prepare for build with Debian 11
+	
 Version 1.1.5:
 	Limit Limit breath inhalation time to 1.5 seconds, to better sync chest movement to sounds at low RR
 	Auto recover from CPR sensor temprarily removed from SimCtl.

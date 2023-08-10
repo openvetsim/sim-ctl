@@ -28,7 +28,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-#include <stropts.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
