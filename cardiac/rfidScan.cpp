@@ -23,17 +23,46 @@
 	ID-2LA, ID-12LA, ID-20LA
 		These devices use a serial IO sequence:
 			STX			02h
-			Data		10 byte ASCII sequence example: "0C000621a58E"
-			Checksum	2 bytes ASCII
-			CR			13h
-			LF			10h
+			Data		10 byte ASCII sequence Example: "D000A2CE51"
+			Checksum	2 bytes ASCII Sequence ExampleL "30"
+			CR			0Dh
+			LF			0Ah
 			ETX			03h
 			
+	Example:
+        02h  30h  44h  30h  30h  41h  32h  43h  45h  35h  31h  33h  30h  0dh  0ah  03h
+        STX   0    D    0    0    A    2    C    E    5    1    3    0   CR   LF   ETX
+
+	
  * Supports the simpler Seeed-Studio device. This device sends
 	5 Hex values as the serial data.
 			Start		00h
 			Data		3 bytes ID
 			Checksum	1 byte checksum
+	Example: 00h 
+	
+ * IC Station Device
+    Baud Rate: 9600
+   Data Header: 0x02
+   Length: 0x09
+   Card Type: 0x01
+   Card Number Data: SN0~SN3
+   BCC Check: XOR operation of other data except head and tail of data
+   End of Data: 0x03
+   The Card Types: 0x02 EM4100/0x01 MIFARE 1K
+ 
+   
+   02h  09h  02h  00h A2h CEh 51h 36h 02h
+   STX  LEN  Type D0  D1  D2h D3h XXh ETX 
+
+   
+   For Example: The data received by the serial tool is 02 09 02 04 2E 53 82 F0 03
+                         The first byte 0x02 indicates the start of data.
+                         The second byte 0x09 indicates that the entire data length is 9 bytes, including the start of data and the end of data.
+                         The third byte 0x02 indicates that the card type is EM4100.
+                         The 4th to 7th bytes (0x04 0x2E 0x53 0x82) These 4 bytes represent the card number read.
+                         The 8th byte 0xF0 indicates the BCC check from the 2nd byte to the 8th byte.
+                         The 9th byte 0x03 indicates the end of the data
 			
 */
 
@@ -135,12 +164,46 @@ ttyPurge(int ttyfd )
 	
 }
 
+int checkBitValidationICS(char *data)
+{
+	int bcc = data[1]^data[2]^data[3]^data[4]^data[5]^data[6]^data[7];
+	if( ! bcc )
+	{
+		if ( debug )
+		{
+			printf("ICS BCC OK\n" );
+		}			
+		return 1;
+	} 
+	else
+	{
+		if ( debug )
+		{
+			printf("ICS BCC Fail %d != %d\n", data[4], bcc );
+		}	
+		return 0;
+	}
+}
+
+unsigned long cardNumberICS(char *data)
+{
+	unsigned long sum;
+	
+	sum = ( ( data[3] << 24 ) |
+			( data[4] << 16 ) |
+			( data[5] << 8 ) |
+			( data[6] ) );
+
+    return sum;
+}
+
 int checkBitValidationSEED(char *data)
 {
 	if( data[4] == ( data[0]^data[1]^data[2]^data[3] ) )
 	{
 		return 1;
-	} else
+	}
+	else
 	{
 		return 0;
 	}
@@ -394,6 +457,11 @@ int main(int argc, char *argv[])
 				{
 					if ( count > TAG_BUF_LEN )
 					{
+						if ( debug )
+						{
+							printf("In state 2, count %d exceeds buffer length %d\n", count, TAG_BUF_LEN );
+						}
+						
 						state = 0;
 						count = 0;
 					}
@@ -402,6 +470,13 @@ int main(int argc, char *argv[])
 						sts = read(ttyfd, &tagBuffer[count], TAG_BUF_LEN - count );
 						if ( sts > 0 )
 						{
+							if ( debug )
+							{
+								for ( i = count ; i < ( count + sts ) ; i++ )
+								{
+									printf("%02xh  ", tagBuffer[i] );
+								}
+							}
 							count += sts;
 							if ( count == 5 )
 							{
@@ -417,6 +492,26 @@ int main(int argc, char *argv[])
 									if ( debug )
 									{
 										printf(" Tag %lld - %d\n", newid, tagIndex );
+									}
+									sprintf(shmData->auscultation.tag, "%lld", newid );
+									state = 3;
+									count = 0;
+								}
+							}
+							if ( count == 9 && tagBuffer[0] == 0x02 && tagBuffer[1] == 0x09 && tagBuffer[8] == 0x03 )
+							{
+								// Test for valid data from SEED reader
+								if ( checkBitValidationICS(tagBuffer ) )
+								{
+									newid = cardNumberICS(tagBuffer );
+									rfidData->tagDetected = 1;
+									
+									tagIndex = tagCheck(newid );
+									sprintf(msgbuf, "Tag %lld - %d", newid, tagIndex );
+									log_message("", msgbuf);
+									if ( debug )
+									{
+										printf(" Tag Type %02xh ID %lld Index %d\n", tagBuffer[2], newid, tagIndex );
 									}
 									sprintf(shmData->auscultation.tag, "%lld", newid );
 									state = 3;

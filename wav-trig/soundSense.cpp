@@ -82,7 +82,6 @@ pthread_t threadInfo3;
 /* prototype for thread routines */
 void *sync_thread ( void *ptr );
 void runHeart(void );
-void tankOnOff(int control );
 void lungFall(int control );
 void lungRise(int control );
 void runLung(void );
@@ -99,9 +98,6 @@ time_t fallStopTime = 0;
 #define HEART_TIMER_SIG		(SIGRTMIN+2)
 #define BREATH_TIMER_SIG	(SIGRTMIN+3)
 #define RISE_TIMER_SIG		(SIGRTMIN+4)
-
-#define TANK_THREASHOLD_LO	1550
-#define TANK_THREASHOLD_HI	2400
 
 #define SOUND_LOOP_DELAY	20000	// Delay in usec
 
@@ -465,7 +461,6 @@ int heartState = 0;
 unsigned int lungLast = 0;
 int lungState = 0;
 
-FILE *tankPin;
 FILE *riseLPin;
 FILE *riseRPin;
 FILE *fallPin;
@@ -474,15 +469,11 @@ FILE *pulsePin;
 int pumpOnOff;
 int riseOnOff;
 int fallOnOff;
-int tankVolume;
 
 void doReport(void )
 {
-	//snprintf(msgbuf, 1024, "Counts: %d, %d, Tank %d Rise %d Heart State %d, Heart Gain %d Lung State %d Lung Gain R-%d L-%d Master Gain %d  heart %d inh R-%d L-%d", 
-	//			current.heartCount, current.breathCount, tankVolume, riseTime, heartState, current.heartGain, 
-	snprintf(msgbuf, 1024, "Counts: %d, %d, Tank %d Heart State %d, Heart Gain %d Lung State %d Lung Gain R-%d L-%d Master Gain %d  heart %d inh R-%d L-%d", 
+	snprintf(msgbuf, 1024, "Counts: %d, %d, Heart State %d, Heart Gain %d Lung State %d Lung Gain R-%d L-%d Master Gain %d  heart %d inh R-%d L-%d", 
 				current.heartCount, current.breathCount, 
-				tankVolume, 
 				heartState, current.heartGain, 
 				lungState, current.rightLungGain, current.leftLungGain, 
 				current.masterGain,
@@ -513,59 +504,8 @@ int volumeToGain(int volume, int strength )
 	return ( gain );
 }
 
-int tankOn = 0;
-int tankCount = 0;
-
-void
-checkTank()
-{
-	int ain2;
-	int ain0;
-	
-	ain2 = read_ain(AIR_PRESSURE_AIN_CHANNEL );
-	ain0 = read_ain(BREATH_AIN_CHANNEL );
-	tankVolume = ain2;
-	if ( debug > 2)
-	{
-		if ( tankCount++ > 50 )
-		{
-			printf("AIN : %d   %d\n", ain0, ain2 );
-			tankCount = 0;
-		}
-	}
-#if 0
-	if ( ain2 > TANK_THREASHOLD_HI )
-	{
-		// Turn off
-		gpioPinSet(tankPin, TURN_OFF );
-
-		if ( debug && tankOn  )
-		{
-			printf("Tank Off: %d\n", ain2 );
-		}
-		tankOn = 0;
-	}
-	if ( ain2 < TANK_THREASHOLD_LO )
-	{
-		// Turn on
-		gpioPinSet(tankPin, TURN_ON );
-		if ( debug && ! tankOn )
-		{
-			printf("Tank On: %d\n", ain2 );
-		}
-		tankOn = 1;
-	}
-#else
-	// Sensor not working. Force on. The pump stalls at around 5 PSI, so it should be ok.
-	//gp->setValue(tankPin, TURN_ON );
-	
-	// Or, configured for external compressor.
-	gpioPinSet(tankPin, TURN_OFF );
-#endif
-}
 void allAirOff(int quiet )
 {
-	gpioPinSet(tankPin, TURN_OFF );
 	gpioPinSet(riseLPin, TURN_OFF );
 	gpioPinSet(riseRPin, TURN_OFF );
 	gpioPinSet(fallPin, TURN_OFF );
@@ -621,10 +561,6 @@ main(int argc, char *argv[] )
 	int changed;
 	int listenState = FALSE;
 	
-	//if ( argc < 2 )
-	//{
-
-	//}
 	while (( c = getopt(argc, argv, "smdth" ) ) != -1 )
 	{
 		switch ( c )
@@ -656,7 +592,6 @@ main(int argc, char *argv[] )
 	
 	if ( monitor == 0 )
 	{
-		
 		if ( optind < argc )
 		{
 			snprintf(sioName[0], MAX_BUF, "/dev/%s", argv[optind] );
@@ -686,8 +621,6 @@ main(int argc, char *argv[] )
 	}
 
 	// Controls for Chest Rise/Fall
-
-	tankPin = gpioPinOpen(45, GPIO_OUTPUT );	// P8_11
 	riseLPin = gpioPinOpen(23, GPIO_OUTPUT );	// P8_13
 	riseRPin = gpioPinOpen(67, GPIO_OUTPUT );	// P8_8
 	fallPin = gpioPinOpen(68, GPIO_OUTPUT );	// P8_10
@@ -739,10 +672,6 @@ main(int argc, char *argv[] )
 		}
 	}
 	
-	if ( debug < 3 )
-	{
-		checkTank();
-	}
 	if ( debug > 1 )
 	{
 		printf("Looking for WAV Trigger\n" );
@@ -750,10 +679,6 @@ main(int argc, char *argv[] )
 	// When booted, the SIO port may not yet be available. Try every 1 second for 20 sec.
 	for ( i = 0 ; i <  20 ; i++ )
 	{
-		if ( debug < 3 )
-		{
-			checkTank();	// Start filling tank while waiting for WAV Trigger
-		}
 		sfd = open(sioName[0], O_RDWR | O_NOCTTY | O_SYNC );
 		if ( sfd < 0 )
 		{
@@ -773,7 +698,7 @@ main(int argc, char *argv[] )
 	{
 		printf("Shut Off air\n" );
 	}
-	allAirOff(0); // Make sure pump is off before doing other init operations
+	allAirOff(0);
 	if ( sfd < 0 )
 	{
 		snprintf(msgbuf, 1024, "No SIO Port. Running Silent" );
@@ -803,7 +728,6 @@ main(int argc, char *argv[] )
 		}
 		initialize_timers();
 	}
-	//printf("Started\n" );
 	if ( sfd < 0 )
 	{
 	}
@@ -952,11 +876,7 @@ main(int argc, char *argv[] )
 				case 2:
 					gpioPinSet(riseRPin, TURN_ON );
 					break;
-				case 3:
-					gpioPinSet(tankPin, TURN_ON );
-					break;
 				case 4:
-					gpioPinSet(tankPin, TURN_OFF );
 					gpioPinSet(riseLPin, TURN_OFF );
 					gpioPinSet(riseRPin, TURN_OFF );
 					gpioPinSet(fallPin, TURN_OFF );
@@ -1069,10 +989,8 @@ main(int argc, char *argv[] )
 				log_message("", msgbuf);
 			}
 		}
-		// Check Air Reservoir
-		checkTank();
-		changed = 0;
 		
+		changed = 0;
 		// Check for heart/lung changes
 		if ( ( current.heart_rate != shmData->cardiac.rate ) || 
 			 ( strcmp(current.heart_sound, shmData->cardiac.heart_sound) != 0 ) )
@@ -1089,8 +1007,9 @@ main(int argc, char *argv[] )
 		{
 			getHeartFiles();
 			doReport();
-			changed = 0;
 		}
+		
+		changed = 0;
 		if ( ( current.respiration_rate != shmData->respiration.rate ) ||
 			 ( strcmp(current.left_lung_sound, shmData->respiration.left_lung_sound) != 0 ) ||
 			 ( strcmp(current.right_lung_sound, shmData->respiration.right_lung_sound) != 0 ) )
@@ -1110,7 +1029,7 @@ main(int argc, char *argv[] )
 			getLungFiles();
 			doReport();
 		}
-	
+		
 		runLung();
 		runHeart();
 		usleep(SOUND_LOOP_DELAY );
@@ -1126,7 +1045,6 @@ sync_thread ( void *ptr )
 	if ( sts != 0 )
 	{
 		perror("comm.openListen" );
-		gpioPinSet(tankPin, TURN_OFF );
 		exit ( -4 );
 	}
 	shmData->simMgrStatusPort = comm.simMgrStatusPort;
@@ -1281,7 +1199,6 @@ runHeart ( void )
 						perror("runHeart: timer_settime");
 						//snprintf(msgbuf, 1024, "runHeart: timer_settime: %s", strerror(errno) );
 						//log_message("", msgbuf );
-						gpioPinSet(tankPin, TURN_OFF );
 						exit ( -1 );
 					}
 				//}
@@ -1384,7 +1301,6 @@ initialize_timers(void )
 		perror("sigaction");
 		snprintf(msgbuf, 1024, "sigaction() fails for Pulse Timer: %s", strerror(errno) );
 		log_message("", msgbuf );
-		tankOnOff(TURN_OFF );
 		exit ( -1 );
 	}
 	// Block timer signal temporarily
@@ -1395,7 +1311,6 @@ initialize_timers(void )
 		perror("sigprocmask");
 		snprintf(msgbuf, 1024, "sigprocmask() fails for Pulse Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-		tankOnOff(TURN_OFF );
 		exit ( -1 );
 	}
 	// Create the Timer
@@ -1408,7 +1323,6 @@ initialize_timers(void )
 		perror("timer_create" );
 		snprintf(msgbuf, 1024, "timer_create() fails for Pulse Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-		tankOnOff(TURN_OFF );
 		exit (-1);
 	}
     if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
@@ -1416,7 +1330,6 @@ initialize_timers(void )
 		perror("sigprocmask");
 		snprintf(msgbuf, 1024, "sigprocmask() fails for Pulse Timer%s ", strerror(errno) );
 		log_message("", msgbuf );
-		tankOnOff(TURN_OFF );
 		exit ( -1 );
 	}
 	
@@ -1429,7 +1342,6 @@ initialize_timers(void )
 		perror("sigaction");
 		snprintf(msgbuf, 1024, "sigaction() fails for Breath Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-		tankOnOff(TURN_OFF );
 		exit(-1 );
 	}
 	// Block timer signal temporarily
@@ -1440,7 +1352,6 @@ initialize_timers(void )
 		perror("sigprocmask");
 		snprintf(msgbuf, 1024, "sigprocmask() fails for Breath Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-		tankOnOff(TURN_OFF );
 		exit ( -1 );
 	}
 	// Create the Timer
@@ -1453,7 +1364,6 @@ initialize_timers(void )
 		perror("timer_create" );
 		snprintf(msgbuf, 1024, "timer_create() fails for Breath Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-		tankOnOff(TURN_OFF );
 		exit (-1);
 	}
 	
@@ -1462,7 +1372,6 @@ initialize_timers(void )
 		perror("sigprocmask");
 		snprintf(msgbuf, 1024, "sigprocmask() fails for Breath Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-		tankOnOff(TURN_OFF );
 		exit ( -1 );
 	}
 	
@@ -1475,7 +1384,6 @@ initialize_timers(void )
 		perror("sigaction");
 		snprintf(msgbuf, 1024, "sigaction() fails for Rise Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-		tankOnOff(TURN_OFF );
 		exit(-1 );
 	}
 	// Block timer signal temporarily
@@ -1486,7 +1394,6 @@ initialize_timers(void )
 		perror("sigprocmask");
 		snprintf(msgbuf, 1024, "sigprocmask() fails for Rise Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-		tankOnOff(TURN_OFF );
 		exit ( -1 );
 	}
 	// Create the Timer
@@ -1499,7 +1406,6 @@ initialize_timers(void )
 		perror("timer_create" );
 		snprintf(msgbuf, 1024, "timer_create() fails for Rise Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-		tankOnOff(TURN_OFF );
 		exit (-1);
 	}
 	
@@ -1508,15 +1414,8 @@ initialize_timers(void )
 		perror("sigprocmask");
 		snprintf(msgbuf, 1024, "sigprocmask() fails for Rise Timer %s", strerror(errno) );
 		log_message("", msgbuf );
-		tankOnOff(TURN_OFF );
 		exit ( -1 );
 	}
-}
-
-void
-tankOnOff(int control )
-{
-	gpioPinSet(tankPin, control );
 }
 
 void
@@ -1624,7 +1523,6 @@ runLung( void )
 						perror("runLung: timer_settime");
 						snprintf(msgbuf, 1024, "runLung: timer_settime: %s", strerror(errno) );
 						log_message("", msgbuf );
-						tankOnOff(TURN_OFF );
 						exit ( -1 );
 					}
 					lungFall(TURN_OFF );
@@ -1683,7 +1581,6 @@ runLung( void )
 						log_message("", msgbuf );
 						snprintf(msgbuf, 1024, "runLung: periodSeconds %f, (%ld : %ld)", periodSeconds, its.it_value.tv_sec, its.it_value.tv_nsec );
 						log_message("", msgbuf );
-						tankOnOff(TURN_OFF );
 						exit ( -1 );
 					}
 				}

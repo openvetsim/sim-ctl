@@ -18,9 +18,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SIMCTL_VERSION "1.1.6"
+#define SIMCTL_VERSION "1.1.7"
 
 /*
+Version 1.1.7:
+	Remove Tank support from Air Controls. Add support for ICStation RFID Reader.
+	
 Version 1.1.6:
 	Changes to prepare for build with Debian 11
 	
