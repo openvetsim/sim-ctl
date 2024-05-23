@@ -18,9 +18,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SIMCTL_VERSION "1.1.7"
+#define SIMCTL_VERSION "1.1.8"
 
 /*
+Version 1.1.8:
+	Add update package for installing without needing internet
+	Change default SYNC_PORT to WinVetSeim (40844)
+	
 Version 1.1.7:
 	Remove Tank support from Air Controls. Add support for ICStation RFID Reader.
 	

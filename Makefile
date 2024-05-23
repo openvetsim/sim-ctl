@@ -33,7 +33,21 @@ default:
 build:
 	@mkdir -p build
 
-update:
+updateDir:
+	@mkdir -p update
+	@rm -rf update/*
+	cp comm/simController comm/simCurl comm/ctlstatus.cgi update
+	cp cardiac/rfidScan update
+	cp cpr/cprScan update
+	cp pulse/pulse update
+	cp respiration/breathSense update
+	cp test/ain_air_test test/ainmon test/tsunami_test update
+	cp wav-trig/soundSense update
+	cp -r www/html update
+	cp scupdate initialization/simmgrName update
+	./createUpdateTar.sh
+	
+update: .FORCE
 	sudo service simctl stop
 	@for dir in $(SUBDIRS); do \
 		$(MAKE) $(MAKEFLAGS) -C $$dir  install; \
@@ -53,3 +67,5 @@ all clean install factory:
 		done
 	
 .PHONY: build $(SUBDIRS)
+
+.FORCE:

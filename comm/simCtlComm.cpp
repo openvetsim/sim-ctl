@@ -3,7 +3,7 @@
  *
  * This file is part of the sim-ctl distribution (https://github.com/OpenVetSimDevelopers/sim-ctl).
  * 
- * Copyright (c) 2019 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
+ * Copyright (c) 2019-2024 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
  * 
  * This program is free software: you can redistribute it and/or modify  
  * it under the terms of the GNU General Public License as published by  
@@ -68,7 +68,7 @@ simCtlComm::simCtlComm()
 	char *ptr;
 	
 	commFD = -1;
-	commPort = SYNC_PORT;
+	commPort = WVS_SYNC_PORT;
 	simMgrName[0] = 0;
 	simMgrIPAddr[0] = 0;
 	simMgrStatusPort = 80;	// Default is standard HTML port. This can be overridden from the SimManager
@@ -229,7 +229,7 @@ simCtlComm::openListen(int active )
 			if ( sts )
 			{
 				// Not found - Wait and then try again
-				sleep(2 );
+				usleep(10000 );
 			}
 		}
 	}
@@ -485,7 +485,7 @@ simCtlComm::trySimMgrOpen(char *hostName )
 						// fprintf(stderr, "EINPROGRESS in connect() - selecting\n"); 
 						
 						tv.tv_sec = 0; 
-						tv.tv_usec = 100000; 
+						tv.tv_usec = 10000; 
 						FD_ZERO(&myset); 
 						FD_SET(fd, &myset); 
 						res = select(fd+1, NULL, &myset, NULL, &tv); 
