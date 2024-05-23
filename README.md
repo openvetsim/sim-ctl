@@ -21,6 +21,12 @@ All projects within the archive are licensed under GLP v3.0. See LICENSE.
 
 ## Release Notes:
 
+### Version 1.1.8:
+	Added Broadcast support to detect WinVetSim faster
+
+### Version 1.1.7:
+	Changes to prepare for build with Debian 11
+ 
 ### Version 1.1.6:
 	Changes to prepare for build with Debian 11
 	
