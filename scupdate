@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-echo "Sim Controller Update Version 1.1.7"
+echo "Sim Controller Update Version 1.1.9"
 RED='\033[0;31m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
@@ -13,18 +13,8 @@ fi
 echo "stopping simctl service"
 systemctl stop simctl
 
-echo "Installing files"
-cp simController /usr/local/bin
-cp simCurl /usr/local/bin
-cp ctlstatus.cgi /var/www/cgi-bin
-chmod ug+s /var/www/cgi-bin/ctlstatus.cgi
-cp rfidScan /usr/local/bin
-cp cprScan  /usr/local/bin
-cp pulse /usr/local/bin
-cp breathSense /usr/local/bin
-cp ain_air_test ainmon tsunami_test /usr/local/bin
-cp soundSense /usr/local/bin
-cp -r html /var/www
+echo "Building and installing firmware"
+make install
 
 if [ ! -f /simulator/simmgrName ]
 then
@@ -40,14 +30,16 @@ then
 	port=$(awk '!/^ *#/ && /50200/' /simulator/simmgrName)
 	if [[ ${#port} -eq 0 ]]
 	then
-		echo "No Port specified in /simulator/simmgrName"
+		echo "${CYAN}No Port specified in /simulator/simmgrName${NC}"
+		echo "${CYAN}Installing default SimMgr configuration${NC}"
+		cp update/simmgrName /simulator
 	else
 		echo -e "${RED}WARNING: Linux Port specified in /simulator/simmgrName${NC}"
 		read -p "Replace with WinVetSim configuration? <Y/n> " prompt
 		if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]
 		then
 			echo "Installing default SimMgr configuration"
-			cp simmgrName /simulator
+			cp update/simmgrName /simulator
 		fi
 
 	fi
