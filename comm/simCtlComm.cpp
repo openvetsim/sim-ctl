@@ -84,6 +84,9 @@ simCtlComm::simCtlComm()
 	// Port only
 	//		:50200
 	//		:40844
+
+	// 9/22/2025 Note: If the Port Only option is selected and the port specified is either 50200 or 40844, then 
+	// we will scan both ports.
 	
 	fd = fopen("/simulator/simmgrName", "r" );
 	if ( fd != NULL )
@@ -106,6 +109,10 @@ simCtlComm::simCtlComm()
 					}
 					ptr += 1;
 					commPort = atoi(ptr );
+					if ( commPort != LINUX_SYNC_PORT && commPort != WVS_SYNC_PORT )
+					{
+						scanBothPorts = false;
+					}
 				}
 				else
 				{
@@ -133,7 +140,7 @@ simCtlComm::openListen(int active )
 
 	char hostAddr[32];
 	struct IPv4 myIP;
-	int i;
+	int i, j;
 	struct ifaddrs *myaddrs, *ifa;
     void *in_addr;
 	struct sockaddr_in *s4;
@@ -202,34 +209,48 @@ simCtlComm::openListen(int active )
 		sts = -1;
 		while ( sts )
 		{
-			// Scan the local subnet looking for the server
-			for ( i = 1 ; i < 255 ; i++ )
+			for ( j = 0 ; j < 2 && state == false ; j++ )
 			{
-				if ( i == myIP.b4 ) // Don't scan our own address
+				if ( scanBothPorts )
 				{
-					continue;
+					if ( j == 0 )
+					{
+						commPort = WVS_SYNC_PORT;
+					}
+					else
+					{
+						commPort = LINUX_SYNC_PORT;
+					}
 				}
-				sprintf(hostAddr, "%d.%d.%d.%d", myIP.b1, myIP.b2, myIP.b3, i );
-				if ( debug )
+				// Scan the local subnet looking for the server
+				for ( i = 1 ; i < 255 ; i++ )
 				{
-					printf("Trying \"%s\"\n", hostAddr );
-				}
-				fd = this->trySimMgrOpen(hostAddr );
-				if ( fd <= 0 )
-				{
-				}
-				else
-				{
-					commFD = fd;
-					sts = 0;
-					break;
-				}
+					if ( i == myIP.b4 ) // Don't scan our own address
+					{
+						continue;
+					}
+					sprintf(hostAddr, "%d.%d.%d.%d", myIP.b1, myIP.b2, myIP.b3, i );
+					if ( debug )
+					{
+						printf("Trying \"%s\"\n", hostAddr );
+					}
+					fd = this->trySimMgrOpen(hostAddr );
+					if ( fd <= 0 )
+					{
+					}
+					else
+					{
+						commFD = fd;
+						sts = 0;
+						break;
+					}
 
-			}
-			if ( sts )
-			{
-				// Not found - Wait and then try again
-				usleep(10000 );
+				}
+				if ( sts )
+				{
+					// Not found - Wait and then try again
+					usleep(10000 );
+				}
 			}
 		}
 	}

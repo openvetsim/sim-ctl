@@ -18,9 +18,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SIMCTL_VERSION "1.1.8"
+#define SIMCTL_VERSION "1.1.9"
 
 /*
+Version 1.1.9:
+	Changed SimManager scan to use both WVS_SYNC_PORT and LINUX_SYNC_PORT rather than require setting in the simmgrName file
+	
 Version 1.1.8:
 	Add update package for installing without needing internet
 	Change default SYNC_PORT to WinVetSeim (40844)

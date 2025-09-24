@@ -21,7 +21,7 @@
 #ifndef SIMCTLCOMM_H_
 #define SIMCTLCOMM_H_
 
-#define SYNC_PORT	50200
+#define LINUX_SYNC_PORT	50200
 #define WVS_SYNC_PORT	40844
 #define LISTEN_ACTIVE	1
 #define LISTEN_INACTIVE	0
@@ -46,6 +46,7 @@ private:
 	int commFD;
 	int commPort;
 	int trySimMgrOpen(char *name );
+	bool scanBothPorts = true;
 	
 public:
 	simCtlComm();
@@ -56,7 +57,7 @@ public:
 	int wait(void );
 	void show(void );
 	
-	int state;
+	bool state = false;
 	char simMgrName[SIM_NAME_SIZE];
 	char simMgrIPAddr[SIM_IP_ADDR_SIZE];
 	int  simMgrStatusPort;
