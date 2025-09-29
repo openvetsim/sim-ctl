@@ -963,10 +963,10 @@ main(int argc, char *argv[] )
 		}
 		else
 		{
-			if ( listenState != comm.state )
+			if ( listenState != comm.barkState )
 			{
-				// listenState has changed. If new state is TRUE then bark
-				listenState = comm.state;
+				// listenState has changed. If new barkState is TRUE then bark
+				listenState = comm.barkState;
 				if ( listenState == TRUE )
 				{
 					int savedVolume = current.masterGain;

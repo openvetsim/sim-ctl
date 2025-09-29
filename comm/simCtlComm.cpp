@@ -72,7 +72,8 @@ simCtlComm::simCtlComm()
 	simMgrName[0] = 0;
 	simMgrIPAddr[0] = 0;
 	simMgrStatusPort = 80;	// Default is standard HTML port. This can be overridden from the SimManager
-	state = FALSE;	// TRUE when connection is good.
+	barkState = FALSE;	// TRUE when first connection is good.
+	connectState = FALSE;	// TRUE when live connection is good.
 	
 	// Allowed formats for simmgrName file:
 	// Hostname or IP address
@@ -209,7 +210,7 @@ simCtlComm::openListen(int active )
 		sts = -1;
 		while ( sts )
 		{
-			for ( j = 0 ; j < 2 && state == false ; j++ )
+			for ( j = 0 ; j < 2 && connectState == false ; j++ )
 			{
 				if ( scanBothPorts )
 				{
@@ -294,7 +295,10 @@ simCtlComm::openListen(int active )
 		if ( active != LISTEN_ACTIVE )
 		{
 			close(commFD );
-			commFD = 0;
+			commFD = -1;
+			sprintf(msgbuf, "comm.openListen simMgr not found (%d)", fd );
+			log_message("", msgbuf);
+			return ( -1 );
 		}
 	}
 	return ( 0 );
@@ -356,21 +360,134 @@ simCtlComm::wait(void )
 			len = write(commFD, buffer, 1 );
 			if ( ( len < 0 )  ||  ( errno == EPIPE ) )
 			{
-				// Leave state as TRUE, to prevent additional barks.
-				// state = FALSE;
+				// Leave barkState as TRUE, to prevent additional barks.
+				connectState = FALSE;
 				
 				//close(commFD );
 				
 				sprintf(msgbuf, "Closed - Reopen Pipe" );
 				log_message("", msgbuf);
+				int sts = this->reopen();
+				if ( sts )
+				{
+					sprintf(msgbuf, "Reopen Failed - Rescan" );
+					log_message("", msgbuf);
 				
-				this->openListen(1);
+					sts = this->openListen(1);
+					sprintf(msgbuf, "openListen returns %d", sts );
+					log_message("", msgbuf);
+				}
 			}
 		}
 		usleep(1000);
 	}
 }
+int
+simCtlComm::reopen(void)
+{
+	int fd = commFD;
+	struct sockaddr_in addr;
+	long arg;
+	int res;
+	struct timeval tv;
+	fd_set myset; 
+	socklen_t lon;
+	int valopt;
+	int ldebug = debug;
+	
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(commPort );	
+	addr.sin_addr.s_addr = inet_addr(currentHostAddr); 
+		
+// Trying to connect with timeout 
+	res = connect(fd, (struct sockaddr *)&addr, sizeof(addr));
+	if ( res < 0 )
+	{
+		if (errno == EINPROGRESS)
+		{ 
+			//sprintf(msgbuf, (stderr, "EINPROGRESS in connect() - selecting\n"); 
+			//log_message("", msgbuf);
+			
+			tv.tv_sec = 0; 
+			tv.tv_usec = 10000; 
+			FD_ZERO(&myset); 
+			FD_SET(fd, &myset); 
+			res = select(fd+1, NULL, &myset, NULL, &tv); 
+			if (res < 0 && errno != EINTR)
+			{ 
+				//printf(msgbuf, "comm.openListen select(): %s", strerror(errno ) );
+				//log_message("", msgbuf);
+			} 
+			else if (res > 0)
+			{ 
+				// Socket selected for write 
+				lon = sizeof(int); 
+				if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0)
+				{ 
+					// fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno)); 
+				} 
+				else
+				{
+					// Check the value returned... 
+					if (valopt) 
+					{
+						// This just means the polled address is not a SimManager. It did not answer on the port.
+						// sprintf(msgbuf, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt) );
+						// log_message("", msgbuf);
+					}
+					else
+					{
+						sprintf(msgbuf, "reopened simMgr at %s\n", currentHostAddr );
+						log_message("", msgbuf);
+						barkState = TRUE;
+						int enableKeepAlive = 1;
+						setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (const char*)&enableKeepAlive, sizeof(enableKeepAlive));
 
+						return ( fd );
+					}
+				}
+			} 
+			else 
+			{ 
+				if ( ldebug )
+				{
+					sprintf(msgbuf, "Timeout in select()\n" );
+					log_message("", msgbuf);
+				}
+				// fprintf(stderr, "Timeout in select()\n");
+			} 
+		} 
+		else
+		{ 
+			fprintf(stderr, "Error Reconnecting %d - %s\n", errno, strerror(errno));  
+			sprintf(msgbuf, "comm.openListen Error connecting): %s", strerror(errno ) );
+			log_message("", msgbuf);
+			return -1;
+		}
+	}
+	else
+	{
+		if ( ldebug )
+		{
+			printf("res is %d\n", res );
+		}
+	}
+	// Set to blocking mode again... 
+	if( (arg = fcntl(fd, F_GETFL, NULL)) < 0)
+	{ 
+		fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
+		sprintf(msgbuf, "comm.openListen fcntl(F_GETFL) fails: %s", strerror(errno ) );
+		log_message("", msgbuf);
+	} 
+	arg &= (~O_NONBLOCK); 
+	if( fcntl(fd, F_SETFL, arg) < 0) 
+	{ 
+		fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
+		sprintf(msgbuf, "comm.openListen fcntl(F_SETFL) fails: %s", strerror(errno ) );
+		log_message("", msgbuf);
+	}
+	return ( 0 );
+}
 int
 simCtlComm::closeListen(void)
 {
@@ -535,11 +652,14 @@ simCtlComm::trySimMgrOpen(char *hostName )
 								else
 								{
 									memcpy(simMgrIPAddr, hostAddr, SIM_IP_ADDR_SIZE );
-
+									memcpy(currentHostAddr, hostAddr, SIM_IP_ADDR_SIZE  );
+		
 									sprintf(msgbuf, "Found simMgr at %s\n", hostAddr );
 									log_message("", msgbuf);
-									state = TRUE;
-									
+									barkState = TRUE;
+									int enableKeepAlive = 1;
+									setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (const char*)&enableKeepAlive, sizeof(enableKeepAlive));
+
 									return ( fd );
 								}
 							}

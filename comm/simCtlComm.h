@@ -47,6 +47,8 @@ private:
 	int commPort;
 	int trySimMgrOpen(char *name );
 	bool scanBothPorts = true;
+	int reopen(void );
+	char currentHostAddr[32];
 	
 public:
 	simCtlComm();
@@ -57,7 +59,9 @@ public:
 	int wait(void );
 	void show(void );
 	
-	bool state = false;
+
+	bool connectState = false;
+	bool barkState = false;
 	char simMgrName[SIM_NAME_SIZE];
 	char simMgrIPAddr[SIM_IP_ADDR_SIZE];
 	int  simMgrStatusPort;
