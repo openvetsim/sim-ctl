@@ -21,8 +21,11 @@ All projects within the archive are licensed under GLP v3.0. See LICENSE.
 
 ## Release Notes:
 
+### Version 1.1.9:
+	Added scan of both WVS and Linux SimManagers, to simplify upgrade and to allow use of both host types without reconfiguration.
+	
 ### Version 1.1.8:
-	Added Broadcast support to detect WinVetSim faster
+	Added Fast Scan support to detect WinVetSim faster
 
 ### Version 1.1.7:
 	Remove Tank support from Air Controls. Add support for ICStation RFID Reader.
