@@ -18,9 +18,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SIMCTL_VERSION "1.1.9"
+#define SIMCTL_VERSION "1.1.10"
 
 /*
+Version 1.1.10:
+	Fix fail to recover lost connection, introduced in last release.
+	Add immediate reopen of current connection. This eliminates dropped pulses.
+	
 Version 1.1.9:
 	Changed SimManager scan to use both WVS_SYNC_PORT and LINUX_SYNC_PORT rather than require setting in the simmgrName file
 	
