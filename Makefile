@@ -48,15 +48,15 @@ updateDir:
 	./createUpdateTar.sh
 	
 update: .FORCE
-	sudo service simctl stop
+	sudo systemctl stop simctl
 	@for dir in $(SUBDIRS); do \
 		$(MAKE) $(MAKEFLAGS) -C $$dir  install; \
 		done
-	sudo service simctl start
+	sudo systemctl start simctl
 
 webconfig:
 	sudo cp initialization/nginx_default /etc/nginx/sites-enabled/default
-	sudo service nginx restart
+	sudo systemctl restart nginx
 
 flasher:
 	sudo /opt/scripts/tools/eMMC/beaglebone-black-make-microSD-flasher-from-eMMC.sh
