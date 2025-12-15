@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-echo "Sim Controller Update Version 1.1.9"
+echo "Sim Controller Update Version 1.1.11"
 RED='\033[0;31m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
@@ -13,39 +13,9 @@ fi
 echo "stopping simctl service"
 systemctl stop simctl
 
-echo "Building and installing firmware"
-make install
-
-if [ ! -f /simulator/simmgrName ]
-then
-	echo "Installing default SimMgr configuration"
-	cp simmgrName /simulator
-else
-	echo "SimMgr configuration file already exists"
-fi
-
-port=$(awk '!/^ *#/ && /40844/' /simulator/simmgrName)
-if [[ ${#port} -eq 0 ]]
-then
-	port=$(awk '!/^ *#/ && /50200/' /simulator/simmgrName)
-	if [[ ${#port} -eq 0 ]]
-	then
-		echo "${CYAN}No Port specified in /simulator/simmgrName${NC}"
-		echo "${CYAN}Installing default SimMgr configuration${NC}"
-		cp update/simmgrName /simulator
-	else
-		echo -e "${RED}WARNING: Linux Port specified in /simulator/simmgrName${NC}"
-		read -p "Replace with WinVetSim configuration? <Y/n> " prompt
-		if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]
-		then
-			echo "Installing default SimMgr configuration"
-			cp update/simmgrName /simulator
-		fi
-
-	fi
-else
-	echo -e "${CYAN}WinVetSim Port specified in /simulator/simmgrName${NC}"
-fi
+cp ain_air_test ainmon breathSense cprScan pulse rfidScan simController simCurl soundSense tsunami_test /usr/local/bin
+cp -r html/* /var/www/html
+cp *.cgi /var/www/cgi-bin
 
 echo "starting simctl service"
 systemctl start simctl

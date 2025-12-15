@@ -49,6 +49,7 @@
 
 #include "simCtlComm.h"
 #include "simUtil.h"
+#include "version.h"
 
 #define BUF_MAX	4096
 
@@ -346,6 +347,12 @@ simCtlComm::wait(void )
 					this->simMgrStatusPort = atoi(ptr );
 					syncState |= SYNC_STATUS_PORT;
 				}
+			}
+			if (  strstr(buffer, "version" )  )
+			{
+				// Write back the version
+				sprintf(buffer, "%s", SIMCTL_VERSION );
+				len = write(commFD, buffer, strlen(buffer) );
 			}
 			if ( syncState != SYNC_NONE )
 			{

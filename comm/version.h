@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SIMCTL_VERSION "1.1.10"
+#define SIMCTL_VERSION "1.1.11"
 
 /*
 Version 1.1.10:
