@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License 
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-installTargets=simController simCurl 
+installTargets=simController
 targets=simUtil.o simCtlComm.o $(installTargets) 
 cgiTargets=ctlstatus.cgi
 CFLAGS=-pthread -Wall -g -ggdb
@@ -25,8 +25,8 @@ default:	$(targets) $(cgiTargets)
 
 all:	$(targets) $(cgiTargets)
 	
-simCurl:	curl.cpp
-	g++   $(CFLAGS) -lcurl -o simCurl curl.cpp
+#simCurl:	curl.cpp
+#	g++   $(CFLAGS) -o simCurl curl.cpp -lcurl 
 	
 simUtil.o: simUtil.cpp simUtil.h
 	g++   $(CFLAGS) -c -o simUtil.o simUtil.cpp

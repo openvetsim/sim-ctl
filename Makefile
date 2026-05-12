@@ -36,7 +36,7 @@ build:
 updateDir:
 	@mkdir -p update
 	@rm -rf update/*
-	cp comm/simController comm/simCurl comm/ctlstatus.cgi update
+	cp comm/simController comm/ctlstatus.cgi update
 	cp cardiac/rfidScan update
 	cp cpr/cprScan update
 	cp pulse/pulse update
