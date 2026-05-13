@@ -461,10 +461,10 @@ int heartState = 0;
 unsigned int lungLast = 0;
 int lungState = 0;
 
-FILE *riseLPin;
-FILE *riseRPin;
-FILE *fallPin;
-FILE *pulsePin;
+struct gpiod_line *riseLPin;
+struct gpiod_line *riseRPin;
+struct gpiod_line *fallPin;
+struct gpiod_line *pulsePin;
 
 int pumpOnOff;
 int riseOnOff;

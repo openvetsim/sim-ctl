@@ -16,7 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 installTargets=simController
-targets=simUtil.o simCtlComm.o $(installTargets) 
+targets=simUtil.o simGpio.o simCtlComm.o $(installTargets) 
 cgiTargets=ctlstatus.cgi
 CFLAGS=-pthread -Wall -g -ggdb
 LDFLAGS=-lrt
@@ -25,12 +25,12 @@ default:	$(targets) $(cgiTargets)
 
 all:	$(targets) $(cgiTargets)
 	
-#simCurl:	curl.cpp
-#	g++   $(CFLAGS) -o simCurl curl.cpp -lcurl 
-	
 simUtil.o: simUtil.cpp simUtil.h
 	g++   $(CFLAGS) -c -o simUtil.o simUtil.cpp
 
+simGpio.o: simGpio.cpp simUtil.h
+	g++   $(CFLAGS) -c -o simGpio.o simGpio.cpp
+	
 simParse.o: simParse.cpp shmData.h
 	g++   $(CFLAGS) -c -o simParse.o simParse.cpp
 
@@ -38,7 +38,7 @@ simCtlComm.o: simCtlComm.cpp simCtlComm.h simUtil.h
 	g++   $(CFLAGS) -c -o simCtlComm.o simCtlComm.cpp
 	
 simController: simController.cpp simUtil.h shmData.h simUtil.o simParse.o
-	g++   $(CFLAGS) -o simController simController.cpp simUtil.o simParse.o $(LDFLAGS)
+	g++   $(CFLAGS) -o simController simController.cpp simUtil.o simParse.o  $(LDFLAGS)
 
 ctlstatus.cgi: ctlstatus.cpp simUtil.h version.h shmData.h simUtil.o
 	g++   $(CFLAGS) -o ctlstatus.cgi ctlstatus.cpp simUtil.o $(LDFLAGS)

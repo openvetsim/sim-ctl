@@ -18,15 +18,15 @@
 installTargets=soundSense
 targets=$(installTargets)
 CFLAGS=-Wall -ggdb
-LDFLAGS=-lrt -lpthread
+LDFLAGS=-lrt -lpthread -lgpiod
 default: $(targets)
 
 BBB_GPIO=../../BeagleBoneBlack-GPIO
 
 all: $(targets)
 
-soundSense: soundSense.cpp wavTrigger.o wavTrigger.h ../comm/shmData.h ../comm/simCtlComm.h ../comm/simCtlComm.o ../comm/simUtil.h ../comm/simUtil.o
-	g++ $(CFLAGS) -o soundSense wavTrigger.o ../comm/simUtil.o ../comm/simCtlComm.o soundSense.cpp $(LDFLAGS)
+soundSense: soundSense.cpp wavTrigger.o wavTrigger.h ../comm/shmData.h ../comm/simCtlComm.h ../comm/simCtlComm.o ../comm/simUtil.h ../comm/simUtil.o ../comm/simGpio.o 
+	g++ $(CFLAGS) -o soundSense wavTrigger.o ../comm/simUtil.o ../comm/simGpio.o ../comm/simCtlComm.o soundSense.cpp $(LDFLAGS)
 
 wavTrigger.o: wavTrigger.cpp wavTrigger.h
 

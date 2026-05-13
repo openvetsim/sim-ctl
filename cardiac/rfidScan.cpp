@@ -297,21 +297,13 @@ int main(int argc, char *argv[])
 	// Monitor the Tag Detected signal from the reader. When it goes high, we wait on 
 	// a mesage from the serial port.
 	// we wait on a serial port for the sensor to be reported.
-#ifdef USE_BBBGPIO
-	int detectPin;
 
-	GPIO::GPIOManager* gp = GPIO::GPIOManager::getInstance();
-	detectPin = GPIO::GPIOConst::getInstance()->getGpioByKey("P9_23" );
-	gp->exportPin(detectPin );
-	gp->setDirection(detectPin, GPIO::INPUT );
-#else
-	FILE *detectPin;
+	//struct gpiod_line *detectPin;
 
-	detectPin = gpioPinOpen(49, GPIO_INPUT );	// P9_23
-	fclose(detectPin );
-#endif
-	
-  
+	//detectPin = gpioPinOpen(49, GPIO_INPUT );	// P9_23
+	//gpiod_line_release(detectPin);
+    //gpiod_chip_close(gpiod_line_get_chip(detectPin));
+ 
 	
 	// Serial port used to read from RFID sensor
 	const char *portname = "/dev/ttyO1";
@@ -371,12 +363,7 @@ int main(int argc, char *argv[])
 	shmData->auscultation.side = 0;
 	lcount = 0;
 
-#ifdef USE_BBBGPIO
-	detect = gp->getValue(detectPin );
-#else
 	gpioPinRead(49, &detect );
-
-#endif
 	
 	sprintf(msgbuf, "Detect Check %d", detect );
 	log_message("", msgbuf);
@@ -397,11 +384,7 @@ int main(int argc, char *argv[])
 			lcount = 0;
 		}
 
-#ifdef USE_BBBGPIO
-		detect = gp->getValue(detectPin );
-#else
 		gpioPinRead(49, &detect );
-#endif
 
 		switch ( state )
 		{

@@ -20,7 +20,7 @@
 # Each subdir, targets for "all", "install" and "clean" should be provided.
 
 # pulse
-SUBDIRS =  comm cardiac cpr  respiration pulse wav-trig initialization test www
+SUBDIRS =  comm cardiac cpr  respiration pulse wav-trig initialization www
 MAKEFLAGS = 
 #--no-print-directory
 default:
@@ -41,7 +41,7 @@ updateDir:
 	cp cpr/cprScan update
 	cp pulse/pulse update
 	cp respiration/breathSense update
-	cp test/ain_air_test test/ainmon test/tsunami_test update
+#	cp test/ain_air_test test/ainmon test/tsunami_test update
 	cp wav-trig/soundSense update
 	cp -r www/html update
 	cp scupdate initialization/simmgrName update

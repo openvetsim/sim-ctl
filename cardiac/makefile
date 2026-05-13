@@ -19,14 +19,14 @@ installTargets=rfidScan
 targets= $(installTargets)
 
 CFLAGS=-pthread -Wall -g -ggdb
-LDFLAGS=-lrt -lxml2
+LDFLAGS=-lrt -lxml2 -lgpiod
 
 default:	rfidScan
 
 all: $(targets)
 	
-rfidScan: rfidScan.cpp  rfidScan.h ../comm/shmData.h ../comm/simCtlComm.h ../comm/simUtil.h
-	g++ rfidScan.cpp  $(CFLAGS) -I/usr/include/libxml2 ../comm/simUtil.o -o rfidScan $(LDFLAGS) 
+rfidScan: rfidScan.cpp  rfidScan.h ../comm/shmData.h ../comm/simCtlComm.h ../comm/simUtil.h ../comm/simGpio.o
+	g++ rfidScan.cpp  $(CFLAGS) -I/usr/include/libxml2 ../comm/simUtil.o ../comm/simGpio.o -o rfidScan $(LDFLAGS) 
 
 install: $(installTargets) .FORCE
 	sudo cp -u $(installTargets) /usr/local/bin

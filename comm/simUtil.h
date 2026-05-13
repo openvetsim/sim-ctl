@@ -3,7 +3,7 @@
  *
  * This file is part of the sim-ctl distribution (https://github.com/OpenVetSimDevelopers/sim-ctl).
  * 
- * Copyright (c) 2019 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
+ * Copyright (c) 2019-2026 VetSim, Cornell University College of Veterinary Medicine Ithaca, NY
  * 
  * This program is free software: you can redistribute it and/or modify  
  * it under the terms of the GNU General Public License as published by  
@@ -21,6 +21,7 @@
 #ifndef SIMUTIL_H_
 #define SIMUTIL_H_
 
+#include <gpiod.h>				  
 void daemonize(void );
 void log_message(const char *filename, const char* message);
 void signal_handler(int sig );
@@ -47,10 +48,9 @@ char* itoa(int num );
 #define GPIO_TURN_OFF	0
 #define GPIO_INPUT		1
 #define GPIO_OUTPUT		0
-
-FILE *gpioPinOpen(int pin, int direction );
-void gpioPinSet(FILE *ioval, int val );
-int gpioPinGet(FILE *ioval, int *value);
+struct gpiod_line *gpioPinOpen(int pin, int direction );
+void gpioPinSet(struct gpiod_line *line, int val );
+int gpioPinGet(struct gpiod_line *line, int *value);
 int gpioPinRead(int pin, int *value);
 
 #endif /* SIMUTIL_H_ */
