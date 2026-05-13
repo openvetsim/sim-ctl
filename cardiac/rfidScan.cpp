@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
  
 	
 	// Serial port used to read from RFID sensor
-	const char *portname = "/dev/ttyO1";
+	const char *portname = "/dev/ttyS1";
 	while ( ttyfd < 0 )
 	{
 		ttyfd = open (portname, O_RDWR | O_NOCTTY | O_NONBLOCK );
