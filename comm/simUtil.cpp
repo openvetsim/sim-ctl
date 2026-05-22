@@ -136,7 +136,7 @@ void daemonize(void )
 	signal(SIGTERM,signal_handler); /* catch kill signal */
 	
 	snprintf(buffer, 128, "%s started", program_invocation_short_name );
-	syslog (LOG_DAEMON | LOG_NOTICE, buffer );
+	syslog (LOG_DAEMON | LOG_NOTICE, "%s", buffer );
 }
 
 
@@ -164,7 +164,7 @@ void log_message(const char *filename, const char* message)
 	}
 	else
 	{
-		syslog(LOG_NOTICE, message);
+		syslog(LOG_NOTICE, "%s", message);
 
 #if LOG_TO_FILE == 1
 		logfile = fopen(filename,"a");

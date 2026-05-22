@@ -32,6 +32,7 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <time.h>
+#include <sys/time.h>
 #include <errno.h>
 #include <sys/mman.h>
 #include <semaphore.h>
@@ -357,143 +358,187 @@ simMgrWrite(void )
 	}
 }
 
+/*
+ * setTimeFromComponents
+ *
+ * Build a struct tm from caller-supplied fields and apply it via settimeofday().
+ * Returns 0 on success, -1 on failure (errno set by settimeofday).
+ */
+static int
+setTimeFromComponents(int year, int month, int day,
+                      int hour, int min, int sec,
+                      const char *label)
+{
+	struct tm t;
+	struct timeval tv;
+	time_t epoch;
+
+	memset(&t, 0, sizeof(t));
+	t.tm_year  = year - 1900;
+	t.tm_mon   = month - 1;   /* tm_mon is 0-based */
+	t.tm_mday  = day;
+	t.tm_hour  = hour;
+	t.tm_min   = min;
+	t.tm_sec   = sec;
+	t.tm_isdst = -1;           /* let mktime() determine DST */
+
+	epoch = mktime(&t);
+	if ( epoch == (time_t)-1 )
+	{
+		snprintf(msgbuf, BUF_LEN_MAX, "simMgrSyncTime (%s): mktime failed", label );
+		syslog(LOG_DAEMON | LOG_NOTICE, "%s", msgbuf );
+		return ( -1 );
+	}
+
+	tv.tv_sec  = epoch;
+	tv.tv_usec = 0;
+	if ( settimeofday(&tv, NULL) != 0 )
+	{
+		snprintf(msgbuf, BUF_LEN_MAX, "simMgrSyncTime (%s): settimeofday failed: %s",
+		         label, strerror(errno) );
+		syslog(LOG_DAEMON | LOG_NOTICE, "%s", msgbuf );
+		return ( -1 );
+	}
+
+	snprintf(msgbuf, BUF_LEN_MAX,
+	         "simMgrSyncTime (%s): date set to %04d-%02d-%02d %02d:%02d:%02d",
+	         label, year, month, day, hour, min, sec );
+	syslog(LOG_DAEMON | LOG_NOTICE, "%s", msgbuf );
+	return ( 0 );
+}
+
 int
 simMgrSyncTime(void)
 {
 	FILE *pipe1;
-	FILE *pipe2;
 	char buff[1024];
 	char dbuff[64];
 	char name[128];
 	char v1[128];
 	char v2[128];
-	int day;
-	int hour;
-	int min;
-	int sec;
-	int month;
-	int year;
+	int day = 0;
+	int hour = 0;
+	int min = 0;
+	int sec = 0;
+	int month = 0;   /* C3 fix: always initialised */
+	int year = 0;
 	int sts;
 	int rval = -1;
 	int len;
 	int i;
-	
-	sprintf(buff, "curl  %s:%d/cgi-bin/simstatus.cgi?date=1", shmData->simMgrIPAddr, shmData->simMgrStatusPort );
-	//log_message("", buff );
+
+	/* The simMgrIPAddr is always set via inet_ntop() and therefore contains
+	 * only digits and dots — no shell metacharacters are possible here.      */
+	snprintf(buff, sizeof(buff), "curl  %s:%d/cgi-bin/simstatus.cgi?date=1",
+	         shmData->simMgrIPAddr, shmData->simMgrStatusPort );
+
 	pipe1 = popen(buff, "r" );
 	if ( !pipe1 )
 	{
-		sprintf(buff, "Get Date fails: %s", strerror(errno ) );
-		syslog (LOG_DAEMON | LOG_NOTICE, buff );
+		snprintf(buff, sizeof(buff), "simMgrSyncTime: popen failed: %s", strerror(errno) );
+		syslog(LOG_DAEMON | LOG_NOTICE, "%s", buff );
+		return ( -1 );
 	}
-	else
-	{
-// Super-simple parse routine
 
-		while (fgets(dbuff, 64, pipe1) != NULL)
+	/* Super-simple parse routine */
+	while (fgets(dbuff, (int)sizeof(dbuff), pipe1) != NULL)
+	{
+		len = (int)strlen(dbuff);
+
+		if ( (len > 20) &&
+		     dbuff[0] == '"' &&
+		     dbuff[1] == 'd' &&
+		     dbuff[2] == 'a' &&
+		     dbuff[3] == 't' &&
+		     dbuff[4] == 'e' )
 		{
-			len = strlen(dbuff);
-			//snprintf(msgbuf, BUF_LEN_MAX, "simMgrSyncTime: %d \"%s\"", len, dbuff );
-			//log_message("", msgbuf );
-			
-			if ( ( len > 20 ) &&
-				dbuff[0] == '"' &&
-				dbuff[1] == 'd' &&
-				dbuff[2] == 'a' &&
-				dbuff[3] == 't' &&
-				dbuff[4] == 'e' )
+			/* Convert quotes to spaces so sscanf sees plain tokens */
+			for ( i = 0 ; i <= len ; i++ )
 			{
-				// Convert quotes to spaces
-				len = strlen(dbuff);
-				for ( i = 0 ; i <= len ; i++ )
-				{
-					if ( dbuff[i] == '"' )  
-					{
-						dbuff[i] = ' ';
-					}
-				}
-					
-				// WinVetSim format: "date":"Fri May 14 11:00:11 2021" 
-				sts = sscanf(dbuff, " %s : %s %s %d %d:%d:%d %d", 
-								name, v1, v2, &day, &hour, &min, &sec, &year );
-				snprintf(msgbuf, BUF_LEN_MAX, "sscanf returns %d from %s", sts, dbuff );
-				syslog (LOG_DAEMON | LOG_NOTICE, msgbuf );
-				if ( sts == 8 )
-				{
-					// WinVetSim
-					if ( strncmp(v2, "Jan", 3 ) == 0 )
-						month = 1;
-					if ( strncmp(v2, "Feb", 3 ) == 0 )
-						month = 2;
-					if ( strncmp(v2, "Mar", 3 ) == 0 )
-						month = 3;
-					if ( strncmp(v2, "Apr", 3 ) == 0 )
-						month = 4;
-					if ( strncmp(v2, "May", 3 ) == 0 )
-						month = 5;
-					if ( strncmp(v2, "Jun", 3 ) == 0 )
-						month = 6;
-					if ( strncmp(v2, "Jul", 3 ) == 0 )
-						month = 7;
-					if ( strncmp(v2, "Aug", 3 ) == 0 )
-						month = 8;
-					if ( strncmp(v2, "Sep", 3 ) == 0 )
-						month = 9;
-					if ( strncmp(v2, "Oct", 3 ) == 0 )
-						month = 10;
-					if ( strncmp(v2, "Nov", 3 ) == 0 )
-						month = 11;
-					if ( strncmp(v2, "Dec", 3 ) == 0 )
-						month = 12;
-					snprintf(buff, 1024, "date %02d%02d%02d%02d%04d",
-										month, day, hour, min, year
-										);
-					pipe2 = popen(buff, "r" );
-					if ( !pipe2 )
-					{
-						snprintf(msgbuf, BUF_LEN_MAX, "set Date (%s) fails: %s", buff, strerror(errno ) );
-						syslog (LOG_DAEMON | LOG_NOTICE, msgbuf );
-					}
-					else
-					{
-						pclose(pipe2 );
-						snprintf(msgbuf, BUF_LEN_MAX, "set Date (%s) Ok", buff );
-						syslog (LOG_DAEMON | LOG_NOTICE, msgbuf );
-						rval = 0;
-					}
-				}
+				if ( dbuff[i] == '"' )
+					dbuff[i] = ' ';
+			}
+
+			/* Try WinVetSim format: date : Fri May 14 11:00:11 2021
+			 * Width limits on %s prevent overflow into name/v1/v2 (all 128 bytes). */
+			sts = sscanf(dbuff, " %127s : %127s %127s %d %d:%d:%d %d",
+			             name, v1, v2, &day, &hour, &min, &sec, &year );
+
+			snprintf(msgbuf, BUF_LEN_MAX, "simMgrSyncTime: sscanf returns %d", sts );
+			syslog(LOG_DAEMON | LOG_NOTICE, "%s", msgbuf );
+
+			if ( sts == 8 )
+			{
+				/* C3 fix: if/else if chain ensures month is always set or
+				 * the error path executes — no uninitialized use possible. */
+				if      ( strncmp(v2, "Jan", 3) == 0 ) month = 1;
+				else if ( strncmp(v2, "Feb", 3) == 0 ) month = 2;
+				else if ( strncmp(v2, "Mar", 3) == 0 ) month = 3;
+				else if ( strncmp(v2, "Apr", 3) == 0 ) month = 4;
+				else if ( strncmp(v2, "May", 3) == 0 ) month = 5;
+				else if ( strncmp(v2, "Jun", 3) == 0 ) month = 6;
+				else if ( strncmp(v2, "Jul", 3) == 0 ) month = 7;
+				else if ( strncmp(v2, "Aug", 3) == 0 ) month = 8;
+				else if ( strncmp(v2, "Sep", 3) == 0 ) month = 9;
+				else if ( strncmp(v2, "Oct", 3) == 0 ) month = 10;
+				else if ( strncmp(v2, "Nov", 3) == 0 ) month = 11;
+				else if ( strncmp(v2, "Dec", 3) == 0 ) month = 12;
 				else
 				{
-					// Linux format: "date":"051411032021.26"
-					sts = sscanf(dbuff, " %s : %s ", 
-									name, v1 );
-					if ( sts == 2 )
+					snprintf(msgbuf, BUF_LEN_MAX,
+					         "simMgrSyncTime: unrecognised month token \"%s\"", v2 );
+					syslog(LOG_DAEMON | LOG_NOTICE, "%s", msgbuf );
+					break;
+				}
+
+				/* C1 fix: call settimeofday() directly — no popen("date ...") */
+				if ( setTimeFromComponents(year, month, day,
+				                           hour, min, sec, "WVS") == 0 )
+				{
+					rval = 0;
+				}
+			}
+			else
+			{
+				/* Linux format: date : 051411032021.26  (MMDDhhmmYYYY.ss)
+				 * Re-parse: the two-token form was already consumed above,
+				 * v1 holds the date string when sts < 8.                   */
+				sts = sscanf(dbuff, " %127s : %127s", name, v1 );
+				if ( sts == 2 )
+				{
+					int lmonth = 0, lday = 0, lhour = 0, lmin = 0, lyear = 0, lsec = 0;
+					int parsed = sscanf(v1, "%2d%2d%2d%2d%4d.%2d",
+					                    &lmonth, &lday, &lhour, &lmin, &lyear, &lsec );
+
+					if ( parsed == 6 &&
+					     lmonth >= 1 && lmonth <= 12 &&
+					     lday   >= 1 && lday   <= 31 &&
+					     lyear  >= 2000 )
 					{
-						// Linux
-						snprintf(buff, 1024, "date -s \"%s\"", v1 );
-						pipe2 = popen(buff, "r" );
-						if ( !pipe2 )
+						/* C1 fix: call settimeofday() directly — no popen("date -s ...") */
+						if ( setTimeFromComponents(lyear, lmonth, lday,
+						                           lhour, lmin, lsec, "Linux") == 0 )
 						{
-							snprintf(msgbuf, BUF_LEN_MAX, "set Date fails: %s \"%s\"", strerror(errno ), dbuff );
-							syslog (LOG_DAEMON | LOG_NOTICE, msgbuf, buff );
-						}
-						else
-						{
-							pclose(pipe2 );
-							syslog (LOG_DAEMON | LOG_NOTICE, buff );
 							rval = 0;
 						}
 					}
 					else
 					{
-						snprintf(msgbuf, BUF_LEN_MAX, "simMgrSyncTime: sscanf returns %d from input %s", sts, dbuff );
-						syslog (LOG_DAEMON | LOG_NOTICE, msgbuf );
+						snprintf(msgbuf, BUF_LEN_MAX,
+						         "simMgrSyncTime: could not parse Linux date string (parsed=%d)", parsed );
+						syslog(LOG_DAEMON | LOG_NOTICE, "%s", msgbuf );
 					}
+				}
+				else
+				{
+					snprintf(msgbuf, BUF_LEN_MAX,
+					         "simMgrSyncTime: sscanf returned %d, cannot extract date token", sts );
+					syslog(LOG_DAEMON | LOG_NOTICE, "%s", msgbuf );
 				}
 			}
 		}
-		pclose(pipe1 );
 	}
+	pclose(pipe1 );
 	return ( rval );
 }
 
