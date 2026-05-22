@@ -46,6 +46,8 @@
 
 #define GPIO_CONSUMER	"sim-ctl"
 
+extern int debug;
+
 /**
  * pin_to_chip_line
  *

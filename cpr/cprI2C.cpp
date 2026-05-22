@@ -315,21 +315,3 @@ cprI2C::~cprI2C()
 {
 	close(I2Cfile);
 }
-
- << 8 );
-	reading = (short)value;
-	readingY = reading;
-	
-	value = readRegister(OUT_Z_L );
-	value |= ( readRegister(OUT_Z_H ) << 8 );
-	reading = (short)value;
-	readingZ = reading;
-	
-	return ( status );
-}
-
-cprI2C::~cprI2C()
-{
-	close(I2Cfile);
-}
-
