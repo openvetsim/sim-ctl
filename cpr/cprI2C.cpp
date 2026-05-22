@@ -49,7 +49,7 @@ int cprI2C::scanForSensor(void )
 {
 	int cc;
 	unsigned char reg;
-	
+
 	for ( I2CBus = 1 ; I2CBus < 3 ; I2CBus++ )
 	{
 		snprintf(I2Cnamebuf, sizeof(I2Cnamebuf), "/dev/i2c-%d", I2CBus);
@@ -73,25 +73,25 @@ int cprI2C::scanForSensor(void )
 				}
 				if ( cc != 0x33 )
 				{
-					if ( debug ) 
-					{	
+					if ( debug )
+					{
 						printf("Device is not LIS3DH\n" );
 					}
-					releaseI2CLock();
+					/* readRegister() already released the I2C lock; don't double-release */
 					present = 0;
 				}
 				else
 				{
-					// Found! Reset device 
+					// Found! Reset device
 					cc = writeRegister(CTRL_REG5, CTRL_REG5 );
-					
+
 					// Wait 5 msec (or more)
 					usleep(20000 );
-					
+
 					// Set mode
 					reg = ( CR1_ODR_100Hz << 4 )  | CR1_ZEN | CR1_YEN | CR1_XEN;
 					cc = writeRegister(CTRL_REG1, reg );
-					
+
 					// Read back to see if it took
 					cc = readRegister(CTRL_REG1 );
 					if ( cc != (int)reg )
@@ -102,20 +102,25 @@ int cprI2C::scanForSensor(void )
 					else
 					{
 						present = 1;
-					
+
 						// Enable Block Data Update
 						reg = ( CR4_BDU );
 						cc = writeRegister(CTRL_REG4, reg );
-						
+
 						// Enable Temp
 						//reg = (TEMP_ADC_PD | TEMP_TEMP_EN );
 						//cc = writeRegister(TEMP_CFG_REG, reg );
 						//temperature = -1;
 						return ( present );
+						/* I2Cfile intentionally kept open — used by readSensor() */
 					}
 				}
 			}
 		}
+		/* Sensor not found on this bus; close before trying the next one.
+		 * Without this, every failed bus iteration leaks a file descriptor. */
+		close(I2Cfile);
+		I2Cfile = -1;
 	}
 	return ( present );
 }

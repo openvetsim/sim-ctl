@@ -132,7 +132,7 @@ class VL6180X
 };
 
 #define constrain(x, a, b)	((x) < (a) ? (a) : ((x) > (b) ? (b) : (x)))
-uint16_t millis(void );
+uint32_t millis(void );
 
 #endif
 

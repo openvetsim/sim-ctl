@@ -580,8 +580,8 @@ simMgrRead(void )
 						break;
 				}
 			}
-			// Check for a data line
-			sts = sscanf(msgbuf, "%s %s", name, value );
+			// Check for a data line; width limits prevent overflow into 128-byte buffers
+			sts = sscanf(msgbuf, "%127s %127s", name, value );
 			if ( sts == 1 )
 			{
 				// printf("Section: '%s'\n", name );

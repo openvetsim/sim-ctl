@@ -117,13 +117,11 @@ void daemonize(void )
 		syslog(LOG_DAEMON | LOG_ERR, "Cannot open lock file");
 		exit(1); // 
 	}
-	/*
 	if ( lockf(lfp,F_TLOCK,0) < 0 )
 	{
-		syslog(LOG_DAEMON | LOG_WARNING, "Cannot take lock");
+		syslog(LOG_DAEMON | LOG_WARNING, "Cannot take lock - another instance may be running");
 		exit(0); // can not lock
 	}
-	*/
 	
 	/* first instance continues */
 	snprintf(str, 16, "%d\n", getpid());
@@ -324,7 +322,12 @@ int findAINPath(void )
 	int sts;
 	
 	fp = popen("find /sys/devices -name AIN0", "r" );
-	
+	if ( fp == NULL )
+	{
+		syslog(LOG_DAEMON | LOG_ERR, "findAINPath: popen failed: %s", strerror(errno));
+		return ( -1 );
+	}
+
 	while ( fgets(ain_path, PATH_MAX, fp) != NULL)
 	{
 		snprintf(ain_path, PATH_MAX, "%s", dirname(ain_path ) );	// Return the directory
@@ -534,39 +537,12 @@ releaseI2CLock(void )
 #endif
 }
 
-// Implementation of itoa() 
-// Base 10 only, so a little more efficient
-char itoaNumbers[12] = "0123456789";
+// Implementation of itoa()
+// Uses snprintf to avoid the out-of-bounds write in the hand-rolled version.
 char itoaString[34] = { 0, };
 
-char* itoa(int num ) 
+char* itoa(int num)
 {
-	char *t = &itoaString[34];
-	int isNeg;
-	int digit;
-	
-	if ( num >= 0 )
-	{
-		isNeg = false;
-	}
-	else
-	{
-		isNeg = true;
-		num = -num;
-	}
-	do 
-	{
-		digit = num % 10;
-		*t-- = itoaNumbers[digit];
-	} while ( num /= 10, num > 0 );
-	
-	if ( isNeg )
-	{
-		*t='-';
-	}
-	else
-	{
-		++t;
-	}
-	return t;
+	snprintf(itoaString, sizeof(itoaString), "%d", num);
+	return itoaString;
 }

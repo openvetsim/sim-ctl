@@ -174,81 +174,127 @@ void VL6180X::configureDefault()
 // Writes an 8-bit register
 void VL6180X::writeReg(uint16_t reg, uint8_t value)
 {
-unsigned char ucTemp[4];
+	unsigned char ucTemp[4];
+	ssize_t rc;
 
 	ucTemp[0] = reg >> 8;
-	ucTemp[1] = reg;
+	ucTemp[1] = (unsigned char)reg;
 	ucTemp[2] = value;
-	write(file_i2c, ucTemp, 3);
+	rc = write(file_i2c, ucTemp, 3);
+	if ( rc != 3 )
+	{
+		last_status = 1;
+	}
 }
 
 // Writes a 16-bit register
 void VL6180X::writeReg16Bit(uint16_t reg, uint16_t value)
 {
-unsigned char ucTemp[4];
+	unsigned char ucTemp[4];
+	ssize_t rc;
 
 	ucTemp[0] = reg >> 8;
-	ucTemp[1] = reg;
+	ucTemp[1] = (unsigned char)reg;
 	ucTemp[2] = (unsigned char)(value >> 8); // MSB first
 	ucTemp[3] = (unsigned char)value;
-	write(file_i2c, ucTemp, 4);
+	rc = write(file_i2c, ucTemp, 4);
+	if ( rc != 4 )
+	{
+		last_status = 1;
+	}
 }
 
 // Writes a 32-bit register
 void VL6180X::writeReg32Bit(uint16_t reg, uint32_t value)
 {
-unsigned char ucTemp[8];
+	unsigned char ucTemp[8];
+	ssize_t rc;
 
 	ucTemp[0] = reg >> 8;
-	ucTemp[1] = reg;
+	ucTemp[1] = (unsigned char)reg;
 	ucTemp[2] = (unsigned char)(value >> 24); // MSB first
 	ucTemp[3] = (unsigned char)(value >> 16);
 	ucTemp[4] = (unsigned char)(value >> 8);
 	ucTemp[5] = (unsigned char)value;
-	write(file_i2c, ucTemp, 6);
+	rc = write(file_i2c, ucTemp, 6);
+	if ( rc != 6 )
+	{
+		last_status = 1;
+	}
 }
 
 // Reads an 8-bit register
 uint8_t VL6180X::readReg(uint16_t reg)
 {
-unsigned char ucTemp[8];
+	unsigned char ucTemp[8];
+	ssize_t rc;
 
-	ucTemp[0] = (reg & 0xFF00)>> 8;
-	ucTemp[1] = reg & 0xFF;
-	write(file_i2c, &ucTemp, 2);
-	read(file_i2c, &ucTemp, 1);
+	ucTemp[0] = (unsigned char)((reg & 0xFF00) >> 8);
+	ucTemp[1] = (unsigned char)(reg & 0xFF);
+	/* Note: pass ucTemp (pointer to first element), not &ucTemp (pointer to array) */
+	rc = write(file_i2c, ucTemp, 2);
+	if ( rc != 2 )
+	{
+		last_status = 1;
+		return 0;
+	}
+	rc = read(file_i2c, ucTemp, 1);
+	if ( rc != 1 )
+	{
+		last_status = 1;
+		return 0;
+	}
 	return ucTemp[0];
 }
 
 // Reads a 16-bit register
 uint16_t VL6180X::readReg16Bit(uint16_t reg)
 {
-unsigned char ucTemp[2];
-int rc;
+	unsigned char ucTemp[2];
+	ssize_t rc;
 
-	ucTemp[0] = (reg & 0xFF00)>> 8;
-	ucTemp[1] = reg & 0xFF;
-	rc = write(file_i2c, &ucTemp, 2);
-	if (rc == 2)
+	ucTemp[0] = (unsigned char)((reg & 0xFF00) >> 8);
+	ucTemp[1] = (unsigned char)(reg & 0xFF);
+	rc = write(file_i2c, ucTemp, 2);
+	if ( rc == 2 )
 	{
 		rc = read(file_i2c, ucTemp, 2);
+		if ( rc != 2 )
+		{
+			last_status = 1;
+			return 0;
+		}
 	}
-	return (uint16_t)((ucTemp[0]<<8) | ucTemp[1]);
-	
+	else
+	{
+		last_status = 1;
+		return 0;
+	}
+	return (uint16_t)((ucTemp[0] << 8) | ucTemp[1]);
 }
 
 // Reads a 32-bit register
 uint32_t VL6180X::readReg32Bit(uint16_t reg)
 {
-unsigned char ucTemp[8];
+	unsigned char ucTemp[8];
+	ssize_t rc;
 
-
-	ucTemp[0] = (reg & 0xFF00)>> 8;
-	ucTemp[1] = reg & 0xFF;
-	write(file_i2c, &ucTemp, 2);
-	read(file_i2c, ucTemp, 4);
-	
-	return (uint32_t)((ucTemp[0]<<24) | (ucTemp[1]<<16) | (ucTemp[2]<<8) | ucTemp[3]);
+	ucTemp[0] = (unsigned char)((reg & 0xFF00) >> 8);
+	ucTemp[1] = (unsigned char)(reg & 0xFF);
+	/* Note: pass ucTemp (pointer to first element), not &ucTemp (pointer to array) */
+	rc = write(file_i2c, ucTemp, 2);
+	if ( rc != 2 )
+	{
+		last_status = 1;
+		return 0;
+	}
+	rc = read(file_i2c, ucTemp, 4);
+	if ( rc != 4 )
+	{
+		last_status = 1;
+		return 0;
+	}
+	return (uint32_t)((ucTemp[0] << 24) | (ucTemp[1] << 16) | (ucTemp[2] << 8) | ucTemp[3]);
 }
 
 // Set range scaling factor. The sensor uses 1x scaling by default, giving range
@@ -377,10 +423,10 @@ void VL6180X::stopContinuous()
 // range measurement)
 uint8_t VL6180X::readRangeContinuous()
 {
-  uint16_t millis_start = millis();
+  uint32_t millis_start = millis();
   while ((readReg(RESULT__INTERRUPT_STATUS_GPIO) & 0x04) == 0)
   {
-    if (io_timeout > 0 && ((uint16_t)millis() - millis_start) > io_timeout)
+    if (io_timeout > 0 && (millis() - millis_start) > io_timeout)
     {
       did_timeout = true;
       return 255;
@@ -398,10 +444,10 @@ uint8_t VL6180X::readRangeContinuous()
 // ambient light measurement)
 uint16_t VL6180X::readAmbientContinuous()
 {
-  uint16_t millis_start = millis();
+  uint32_t millis_start = millis();
   while ((readReg(RESULT__INTERRUPT_STATUS_GPIO) & 0x20) == 0)
   {
-    if (io_timeout > 0 && ((uint16_t)millis() - millis_start) > io_timeout)
+    if (io_timeout > 0 && (millis() - millis_start) > io_timeout)
     {
       did_timeout = true;
       return 0;
@@ -436,20 +482,20 @@ uint64_t get_posix_clock_time_ms ()
 uint64_t begin = 0;
 double divisor;
 
-uint16_t
+/* Returns milliseconds elapsed since first call.
+ * Changed from uint16_t to uint32_t (H9 fix): the uint16_t version silently
+ * wrapped at ~65 seconds, producing incorrect elapsed times in the timeout
+ * loops in readRangeContinuous() and readAmbientContinuous().               */
+uint32_t
 millis(void )
 {
-	uint64_t millisec;
-	
 	if ( begin == 0 )
 	{
 		begin = get_posix_clock_time_ms();
 	}
 	uint64_t end = get_posix_clock_time_ms();
-	//printf("%lld  %lld\n", begin, end );
 	uint64_t diff = end - begin;
-	millisec = (uint16_t)diff;
-	return ( millisec );
+	return (uint32_t)diff;
 }
 
 
