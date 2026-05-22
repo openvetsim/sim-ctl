@@ -108,10 +108,10 @@ int main(int argc, char *argv[])
 		log_message("","No cprSense Found on bus - Waiting" );
 		while ( 1 )
 		{
-			// We loop here to keep the deamon open. Makes for a cleaner shutdown.
+			// We loop here to keep the daemon open. Makes for a cleaner shutdown.
 			sleep(60);
 		}
-		log_message("","cprSense Found Sensor" );
+		/* unreachable — loop above has no exit condition */
 	}
 	
 	// shmData->present = cprSense.present;

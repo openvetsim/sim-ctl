@@ -119,6 +119,7 @@ simCtlComm::simCtlComm()
 				else
 				{
 					strncpy(simMgrName, name, SIM_NAME_SIZE-2 );
+					simMgrName[SIM_NAME_SIZE-2] = '\0';   /* guarantee NUL termination */
 					simMgrName[strcspn(simMgrName, "\n\r")] = 0;
 				}
 			}
@@ -540,20 +541,19 @@ simCtlComm::trySimMgrOpen(char *hostName )
 	long arg;
 	int res;
 	struct timeval tv;
-	fd_set myset; 
+	fd_set myset;
 	socklen_t lon;
 	int valopt;
-	struct hostent *he;
-    struct in_addr **addr_list;
 	char hostAddr[32];
 	int a =0;
 	int b = 0;
 	int c = 0;
 	int d = 0;
 	int ldebug = debug;
-	
-	// If an IP address is passed in, use it directly. Otherwise, get the IP address from the hostname.
-    res = sscanf(hostName, "%d.%d.%d.%d", &a, &b, &c, &d );
+
+	/* If an IP address is passed in, use it directly. Otherwise resolve the
+	 * hostname with getaddrinfo (replaces deprecated gethostbyname).         */
+	res = sscanf(hostName, "%d.%d.%d.%d", &a, &b, &c, &d );
 	if ( res == 4 )
 	{
 		if ( ldebug )
@@ -561,37 +561,48 @@ simCtlComm::trySimMgrOpen(char *hostName )
 			sprintf(msgbuf, "simCtlComm::trySimMgrOpen: IP Addr \"%s\" (res %d)\n", hostName, res );
 			log_message("", msgbuf);
 		}
-		strncpy(hostAddr, hostName, 32 );
+		strncpy(hostAddr, hostName, sizeof(hostAddr) - 1);
+		hostAddr[sizeof(hostAddr) - 1] = '\0';
 	}
 	else
 	{
+		struct addrinfo hints, *result;
+
 		if ( ldebug )
 		{
 			sprintf(msgbuf, "simCtlComm::trySimMgrOpen: hostName \"%s\"\n", hostName );
 			log_message("", msgbuf);
 		}
-		if ( (he = gethostbyname( hostName ) ) == NULL) 
+
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family   = AF_INET;       /* IPv4 only */
+		hints.ai_socktype = SOCK_STREAM;
+
+		res = getaddrinfo(hostName, NULL, &hints, &result);
+		if ( res != 0 )
 		{
-			// No IP address found
 			if ( ldebug )
 			{
-				printf("simCtlComm::trySimMgrOpen: No IP found for host \"%s\"\n", hostName );
+				sprintf(msgbuf, "simCtlComm::trySimMgrOpen: getaddrinfo(\"%s\"): %s",
+				        hostName, gai_strerror(res));
+				log_message("", msgbuf);
 			}
-			sprintf(msgbuf, "%s - res %d (%d.%d.%d.%d)", hostName, res, a,b,c,d );
-			log_message("", msgbuf);
-			return -4;
+			return ( -4 );
 		}
-		
-		addr_list = (struct in_addr **) he->h_addr_list;
-		if ( addr_list[0] == NULL )
+
+		/* Use the first returned address */
+		struct sockaddr_in *sin = (struct sockaddr_in *)result->ai_addr;
+		if ( !inet_ntop(AF_INET, &sin->sin_addr, hostAddr, sizeof(hostAddr)) )
 		{
-			// Host found but no IP listed
-			return -2;
+			freeaddrinfo(result);
+			return ( -2 );
 		}
-		strncpy(hostAddr , inet_ntoa(*addr_list[0]), 32 );
+		freeaddrinfo(result);
+
 		if ( ldebug )
 		{
-			sprintf(msgbuf, "simCtlComm::trySimMgrOpen: IP found for host \"%s\" is \"%s\"\n", hostName, hostAddr );
+			sprintf(msgbuf, "simCtlComm::trySimMgrOpen: IP found for host \"%s\" is \"%s\"\n",
+			        hostName, hostAddr );
 			log_message("", msgbuf);
 		}
 	}

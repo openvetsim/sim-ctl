@@ -49,7 +49,7 @@ cardiac_parse(const char *elem,  const char *value, struct cardiac *card )
 			{
 				printf("Cardiac rhythm: %s (old %s)\n", value, card->rhythm );
 			}
-			sprintf(card->rhythm, "%s", value );
+			snprintf(card->rhythm, STR_SIZE, "%s", value );
 		}
 	}
 	else if ( strcmp(elem, ("vpc" ) ) == 0 )
@@ -60,7 +60,7 @@ cardiac_parse(const char *elem,  const char *value, struct cardiac *card )
 			{
 				printf("Cardiac vpc: %s\n", value );
 			}
-			sprintf(card->vpc, "%s", value );
+			snprintf(card->vpc, STR_SIZE, "%s", value );
 		}
 	}
 	else if ( strcmp(elem, ("pea" ) ) == 0 )
@@ -93,7 +93,7 @@ cardiac_parse(const char *elem,  const char *value, struct cardiac *card )
 			{
 				printf("Cardiac vfib_amplitude: %s\n", value );
 			}
-			sprintf(card->vfib_amplitude, "%s", value );
+			snprintf(card->vfib_amplitude, STR_SIZE, "%s", value );
 		}
 	}
 	else if ( strcmp(elem, ("pwave" ) ) == 0 )
@@ -104,7 +104,7 @@ cardiac_parse(const char *elem,  const char *value, struct cardiac *card )
 			{
 				printf("Cardiac pwave: %s\n", value );
 			}
-			sprintf(card->pwave, "%s", value );
+			snprintf(card->pwave, STR_SIZE, "%s", value );
 		}
 	}
 	else if ( strcmp(elem, ("rate" ) ) == 0 )
@@ -230,7 +230,7 @@ cardiac_parse(const char *elem,  const char *value, struct cardiac *card )
 				printf("Cardiac heart_sound: %s\n", value );
 			}
 		}
-		sprintf(card->heart_sound, "%s", value );
+		snprintf(card->heart_sound, STR_SIZE, "%s", value );
 	}
 	else if ( strcmp(elem, ("right_dorsal_pulse_strength" ) ) == 0 )
 	{
@@ -451,7 +451,7 @@ respiration_parse(const char *elem,  const char *value, struct respiration *resp
 			{
 				printf("Respiration left_lung_sound: %s\n", value );
 			}
-			sprintf(resp->left_lung_sound, "%s", value );
+			snprintf(resp->left_lung_sound, STR_SIZE, "%s", value );
 		}
 	}
 	else if ( strcmp(elem, "right_lung_sound" ) == 0 )
@@ -462,7 +462,7 @@ respiration_parse(const char *elem,  const char *value, struct respiration *resp
 			{
 				printf("Respiration right_lung_sound: %s\n", value );
 			}
-			sprintf(resp->right_lung_sound, "%s", value );
+			snprintf(resp->right_lung_sound, STR_SIZE, "%s", value );
 		}
 	}
 	else if ( strcmp(elem, "rate" ) == 0 )

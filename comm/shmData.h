@@ -168,7 +168,7 @@ struct shmData
 	struct defibrillation defibrillation;
 	int manual_breath_ain;
 	int manual_breath_baseline;
-	int manual_breath_threashold;
+	int manual_breath_threshold;
 	int manual_breath_count;
 	int manual_breath_invert;
 };

@@ -80,7 +80,10 @@ gpioPinOpen(int pin, int direction)
 	struct gpiod_line *line;
 	int ret;
 
-	printf("gpioPinOpen(%d, %d)\n", pin, direction);
+	if ( debug )
+	{
+		printf("gpioPinOpen(%d, %d)\n", pin, direction);
+	}
 
 	pin_to_chip_line(pin, &chip_num, &line_offset);
 

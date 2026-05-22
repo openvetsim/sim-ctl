@@ -34,6 +34,13 @@
 #include "../comm/shmData.h"
 extern int debug;
 
+/* Linux I2C remote I/O error (slave NACK'd the transfer).
+ * errno 121 is EREMOTEIO in the kernel but is not exposed in
+ * standard glibc headers on all BSPs, so define it explicitly. */
+#ifndef EREMOTEIO
+#define EREMOTEIO 121
+#endif
+
 //char errbuf[2048];
 
 using namespace std;
@@ -162,7 +169,7 @@ int cprI2C::readRegister(int reg )
 	{
 		//sprintf(errbuf, "cprI2C::readRegister: ioctl error %d : %s", errno, strerror(errno) );
 		//log_message("", errbuf );
-		if ( errno == 121 )
+		if ( errno == EREMOTEIO )
 		{
 			present = 0;
 		}
@@ -206,7 +213,7 @@ int cprI2C::readRegister16(int reg )
 	{
 		//sprintf(errbuf, "cprI2C::readRegister16: ioctl error %d : %s", errno, strerror(errno) );
 		//log_message("", errbuf );
-		if ( errno == 121 )
+		if ( errno == EREMOTEIO )
 		{
 			present = 0;
 		}
@@ -242,7 +249,7 @@ int cprI2C::writeRegister(int reg, unsigned char val )
 	{
 		//sprintf(errbuf, "cprI2C::writeRegister: ioctl error %d : %s", errno, strerror(errno) );
 		//log_message("", errbuf );
-		if ( errno == 121 )
+		if ( errno == EREMOTEIO )
 		{
 			present = 0;
 		}
@@ -293,6 +300,23 @@ int cprI2C::readSensor()
 	
 	value = readRegister(OUT_Y_L );
 	value |= ( readRegister(OUT_Y_H ) << 8 );
+	reading = (short)value;
+	readingY = reading;
+	
+	value = readRegister(OUT_Z_L );
+	value |= ( readRegister(OUT_Z_H ) << 8 );
+	reading = (short)value;
+	readingZ = reading;
+	
+	return ( status );
+}
+
+cprI2C::~cprI2C()
+{
+	close(I2Cfile);
+}
+
+ << 8 );
 	reading = (short)value;
 	readingY = reading;
 	

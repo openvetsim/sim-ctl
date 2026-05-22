@@ -117,7 +117,7 @@ sendStatus(void )
 	cout << ",\n";
 	makejson(cout, "baseline", itoa(shmData->manual_breath_baseline ) );
 	cout << ",\n";
-	makejson(cout, "threashold", itoa(shmData->manual_breath_threashold) );
+	makejson(cout, "threshold", itoa(shmData->manual_breath_threshold) );
 	cout << ",\n";
 	makejson(cout, "count", itoa(shmData->manual_breath_count) );
 	cout << ",\n";
