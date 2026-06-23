@@ -18,9 +18,20 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SIMCTL_VERSION "1.1.12"
+#define SIMCTL_VERSION "1.1.13"
 
 /*
+Version 1.1.13: June 23, 2026
+	Added a 3-second delay before the SimMgr Polling loop. Helps for quicker startup with some routers.
+	
+Version 1.1.12: May 22, 2026
+	Ran a full code review and made many fixes.
+	Updates to prepare for next Debian upgrade.
+	Removed local curl code and replaced with libcurl.
+	
+Version 1.1.11: Dec 15, 2025
+	Added code to return version info for SimManager display
+	
 Version 1.1.10:
 	Fix fail to recover lost connection, introduced in last release.
 	Add immediate reopen of current connection. This eliminates dropped pulses.

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-echo "Sim Controller Update Version 1.1.11"
+echo "Sim Controller Update Version 1.1.13"
 RED='\033[0;31m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
