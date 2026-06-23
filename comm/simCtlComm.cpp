@@ -207,6 +207,8 @@ simCtlComm::openListen(int active )
 			}
 		}
 	}
+	// Short delay after getting our address before the scan. Allows the router to get the connections established
+	sleep(3 );
 	if ( strlen(simMgrName) == 0 )
 	{
 		sts = -1;
